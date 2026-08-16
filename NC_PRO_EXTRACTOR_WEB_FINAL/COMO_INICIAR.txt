@@ -1,0 +1,37 @@
+NC PRO EXTRACTOR
+================
+
+PRODUCAO NO RENDER
+------------------
+Build Command:
+  pip install -r requirements.txt
+
+Start Command:
+  gunicorn app:app
+
+Variaveis obrigatorias/recomendadas:
+  DATABASE_URL = URL do PostgreSQL Render
+  SECRET_KEY   = chave secreta forte
+
+O sistema NAO usa SQLite por padrao.
+
+WINDOWS / VS CODE
+-----------------
+1. Instale Python.
+2. Abra a pasta do projeto no VS Code.
+3. No terminal:
+
+   python -m venv .venv
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+
+4. Para usar o PostgreSQL do Render a partir do Windows:
+
+   $env:DATABASE_URL="SUA_EXTERNAL_DATABASE_URL"
+   $env:SECRET_KEY="SUA_CHAVE_LOCAL"
+   python app.py
+
+5. Abra:
+   http://127.0.0.1:5000
+
+Nunca envie nem publique sua DATABASE_URL.

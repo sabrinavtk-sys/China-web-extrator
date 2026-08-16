@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#09060f"
+    >
+
+    <title>
+        China PRO Extractor
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}?v=50"
+    >
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <script>
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("/static/sw.js").catch(()=>{}));
+    }
+    </script>
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <!-- =====================================
+         MENU LATERAL
+    ====================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+
+        <div class="sidebar-topo">
+
+
+            <div class="logo">
+
+                <div class="logo-icone">
+                    C
+                </div>
+
+                <div class="logo-texto">
+
+                    <h2>
+                        ChinaPRO
+                    </h2>
+
+                    <span>
+                        EXTRACTOR
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="btn-fechar-menu"
+                id="btnFecharMenu"
+                aria-label="Fechar menu"
+            >
+                ✕
+            </button>
+
+
+        </div>
+
+
+        <nav class="menu-navegacao">
+
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="menu-link active"
+            >
+
+                <span class="menu-icone">
+                    🏠
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <button
+                type="button"
+                class="menu-link"
+                id="atalhoOCR"
+            >
+
+                <span class="menu-icone">
+                    📤
+                </span>
+
+                <span>
+                    OCR
+                </span>
+
+            </button>
+
+
+            <a
+                href="{{ url_for('historico') }}"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    📂
+                </span>
+
+                <span>
+                    Histórico
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('relatorios') }}"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    📊
+                </span>
+
+                <span>
+                    Relatórios
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('configuracoes') }}"
+                class="menu-link"
+            >
+                <span class="menu-icone">⚙️</span>
+                <span>Configurações</span>
+            </a>
+
+
+        </nav>
+
+
+        <div class="sidebar-rodape">
+
+
+
+
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="menu-acao menu-sair"
+            >
+                🚪 Sair
+            </a>
+
+
+        </div>
+
+
+    </aside>
+
+
+    <div
+        class="overlay-menu"
+        id="overlayMenu"
+    ></div>
+
+
+    <!-- =====================================
+         CONTEÚDO PRINCIPAL
+    ====================================== -->
+
+    <main class="content">
+
+
+        <!-- =====================================
+             TOPO
+        ====================================== -->
+
+        <header class="topbar">
+
+
+            <div class="topbar-inicio">
+
+
+                <button
+                    type="button"
+                    class="btn-abrir-menu"
+                    id="btnAbrirMenu"
+                    aria-label="Abrir menu"
+                >
+                    ☰
+                </button>
+
+
+                <div>
+
+                    <span class="topbar-legenda">
+                        PAINEL DE CONTROLE
+                    </span>
+
+                    <h1>
+                        Dashboard
+                    </h1>
+
+                    <p>
+                        Extraia os dados dos prints, calcule os ganhos
+                        e registre suas operações.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="usuario">
+
+
+                <div class="usuario-avatar">
+                    👤
+                </div>
+
+
+                <div class="usuario-dados">
+
+                    <small>
+                        Usuário conectado
+                    </small>
+
+                    <strong id="usuarioLogado">
+                        {{ current_user.usuario }}
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+        </header>
+
+
+        <!-- =====================================
+             CARDS
+        ====================================== -->
+
+        <section class="meta-semanal-box">
+            <div class="meta-semanal-topo">
+                <div>
+                    <span class="topbar-legenda">PROGRESSÃO SEMANAL</span>
+                    <h2>{{ progresso.cargo }}</h2>
+                    <p>{{ progresso.inicio.strftime('%d/%m/%Y') }} 00:00 → {{ progresso.fim_exibicao.strftime('%d/%m/%Y') }} 23:59</p>
+                </div>
+                <a href="{{ url_for('configuracoes') }}" class="meta-config-link">⚙️ Configurações</a>
+            </div>
+            {% if progresso.meta %}
+            <div class="meta-numeros"><strong>{{ progresso.lavagens }} / {{ progresso.meta }}</strong><span>{{ progresso.status }}</span></div>
+            <div class="meta-barra"><div style="width: {{ progresso.percentual }}%"></div></div>
+            <small>Meta entregue: {{ '✅ Sim' if progresso.meta_entregue else '❌ Não' }}{% if progresso.apto %} • 🟢 APTO PARA UPAMENTO{% endif %}</small>
+            {% else %}
+            <div class="meta-numeros"><strong>⭐ Doleiro</strong><span>Possível convite para Gerência</span></div>
+            {% endif %}
+        </section>
+
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+        <section class="mensagens-sistema">
+            {% for categoria, mensagem in mensagens %}
+            <div class="mensagem-sistema mensagem-{{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+        </section>
+        {% endif %}
+        {% endwith %}
+
+        <section class="cards">
+
+
+            <article class="card">
+
+
+                <div class="card-topo">
+
+                    <div class="card-icone">
+                        📊
+                    </div>
+
+                    <span class="card-status">
+                        ATIVO
+                    </span>
+
+                </div>
+
+
+                <div class="card-conteudo">
+
+                    <p>
+                        Operações
+                    </p>
+
+                    <strong>
+                        {{ total_operacoes }}
+                    </strong>
+
+                    <small>
+                        Registros realizados
+                    </small>
+
+                </div>
+
+
+            </article>
+
+
+            <article class="card">
+
+
+                <div class="card-topo">
+
+                    <div class="card-icone">
+                        💰
+                    </div>
+
+                    <span class="card-status">
+                        TOTAL
+                    </span>
+
+                </div>
+
+
+                <div class="card-conteudo">
+
+                    <p>
+                        Valor total
+                    </p>
+
+                    <strong id="valorTotal">
+
+                        R$ {{ "{:,.2f}".format(valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+                    </strong>
+
+                    <small>
+                        Valor processado
+                    </small>
+
+                </div>
+
+
+            </article>
+
+
+            <article class="card">
+
+
+                <div class="card-topo">
+
+                    <div class="card-icone">
+                        📈
+                    </div>
+
+                    <span class="card-status">
+                        GANHOS
+                    </span>
+
+                </div>
+
+
+                <div class="card-conteudo">
+
+                    <p>
+                        Lucro final
+                    </p>
+
+                    <strong>
+
+                        R$ {{ "{:,.2f}".format(lucro_total).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+                    </strong>
+
+                    <small>
+                        Ganhos acumulados
+                    </small>
+
+                </div>
+
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             TÍTULO OCR
+        ====================================== -->
+
+        <section
+            class="secao-cabecalho"
+            id="secaoOCR"
+        >
+
+
+            <div>
+
+                <span class="secao-etiqueta">
+                    EXTRAÇÃO AUTOMÁTICA
+                </span>
+
+                <h2>
+                    Processamento OCR
+                </h2>
+
+                <p>
+                    Selecione o print de envio e o print com o balão azul.
+                </p>
+
+            </div>
+
+
+            <div class="status-sistema">
+
+                <span class="status-ponto"></span>
+
+                Sistema disponível
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =====================================
+             UPLOAD DOS PRINTS
+        ====================================== -->
+
+        <section class="ocr-area">
+
+
+            <article class="ocr-card">
+
+
+                <div class="ocr-card-topo">
+
+                    <div class="ocr-card-titulo">
+
+                        <span class="ocr-card-icone">
+                            📤
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Print de envio
+                            </h3>
+
+                            <p>
+                                Captura da operação enviada.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <label
+                    class="upload-area"
+                    for="printEnvio"
+                >
+
+
+                    <input
+                        type="file"
+                        id="printEnvio"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onchange="previewImagem(this, 'previewEnvio')"
+                    >
+
+
+                    <div class="upload-vazio">
+
+                        <span class="upload-icone">
+                            ⬆️
+                        </span>
+
+                        <strong>
+                            Clique para selecionar
+                        </strong>
+
+                        <small>
+                            PNG, JPG ou JPEG
+                        </small>
+
+                    </div>
+
+
+                    <img
+                        id="previewEnvio"
+                        class="preview"
+                        alt="Prévia do print de envio"
+                    >
+
+
+                </label>
+
+
+            </article>
+
+
+            <article class="ocr-card">
+
+
+                <div class="ocr-card-topo">
+
+                    <div class="ocr-card-titulo">
+
+                        <span class="ocr-card-icone">
+                            📥
+                        </span>
+
+                        <div>
+
+                            <h3>
+                                Print de recebimento
+                            </h3>
+
+                            <p>
+                                Captura contendo o balão azul.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <label
+                    class="upload-area"
+                    for="printRecebimento"
+                >
+
+
+                    <input
+                        type="file"
+                        id="printRecebimento"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onchange="previewImagem(this, 'previewRecebimento')"
+                    >
+
+
+                    <div class="upload-vazio">
+
+                        <span class="upload-icone">
+                            ⬇️
+                        </span>
+
+                        <strong>
+                            Clique para selecionar
+                        </strong>
+
+                        <small>
+                            PNG, JPG ou JPEG
+                        </small>
+
+                    </div>
+
+
+                    <img
+                        id="previewRecebimento"
+                        class="preview"
+                        alt="Prévia do print de recebimento"
+                    >
+
+
+                </label>
+
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             PROCESSAR OCR
+        ====================================== -->
+
+        <div class="processar-container">
+
+
+            <button
+                type="button"
+                id="btnProcessar"
+                class="btn-processar"
+            >
+
+                <span class="btn-processar-icone">
+                    🤖
+                </span>
+
+                <span class="btn-processar-texto">
+
+                    <strong>
+                        PROCESSAR OCR
+                    </strong>
+
+                    <small>
+                        Iniciar análise dos dois prints
+                    </small>
+
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+        <!-- =====================================
+             CONSOLE OCR
+        ====================================== -->
+
+        <section class="debug">
+
+
+            <div class="debug-topo">
+
+                <div class="debug-titulo">
+
+                    <span class="debug-icone">
+                        ⌨️
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Console OCR
+                        </h3>
+
+                        <p>
+                            Acompanhe o processamento.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="debug-status">
+
+                    <span></span>
+
+                    Aguardando
+
+                </div>
+
+            </div>
+
+
+            <pre id="resultadoOCR">Aguardando processamento...</pre>
+
+
+        </section>
+
+
+        <!-- =====================================
+             RESULTADO
+        ====================================== -->
+
+        <section class="resultado">
+
+
+            <div class="resultado-topo">
+
+
+                <div>
+
+                    <span class="secao-etiqueta">
+                        DADOS EXTRAÍDOS
+                    </span>
+
+                    <h2>
+                        📋 Resultado da operação
+                    </h2>
+
+                    <p>
+                        Confira os dados antes de salvar.
+                    </p>
+
+                </div>
+
+
+                <span class="resultado-status">
+                    OCR
+                </span>
+
+
+            </div>
+
+
+            <div class="resultado-grid">
+
+
+                <div class="campo-resultado">
+
+
+                    <div class="campo-icone">
+                        👤
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label>
+                            Nome do jogador
+                        </label>
+
+                        <p id="nomeJogador">
+                            ---
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="campo-resultado">
+
+
+                    <div class="campo-icone">
+                        🆔
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label>
+                            ID do jogador
+                        </label>
+
+                        <p id="idJogador">
+                            ---
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="campo-resultado">
+
+
+                    <div class="campo-icone">
+                        📅
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label>
+                            Data da operação
+                        </label>
+
+                        <p id="dataOperacao" data-data-fixa="1">
+                            {{ data_hoje }}
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="campo-resultado campo-valor">
+
+
+                    <div class="campo-icone">
+                        💵
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label>
+                            Valor processado
+                        </label>
+
+                        <p id="valorRecebido">
+                            R$ 0
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="campo-resultado campo-input">
+
+
+                    <div class="campo-icone">
+                        📊
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label for="porcentagemAplicada">
+                            Porcentagem aplicada
+                        </label>
+
+
+                        <div class="controle-porcentagem">
+
+
+                            <button
+                                type="button"
+                                class="btn-porcentagem"
+                                id="diminuirPorcentagem"
+                            >
+                                −
+                            </button>
+
+
+                            <div class="porcentagem-valor">
+
+                                <input
+                                    type="number"
+                                    id="porcentagemAplicada"
+                                    value="-20"
+                                    min="-40"
+                                    max="-20"
+                                    step="1"
+                                    inputmode="numeric"
+                                >
+
+                                <span>
+                                    %
+                                </span>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn-porcentagem"
+                                id="aumentarPorcentagem"
+                            >
+                                +
+                            </button>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="campo-resultado campo-ganho">
+
+
+                    <div class="campo-icone">
+                        💎
+                    </div>
+
+
+                    <div class="campo-conteudo">
+
+                        <label>
+                            Ganho da operação
+                        </label>
+
+                        <p id="valorPorcentagem">
+                            R$ 0,00
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="campo-extra">
+
+
+                <label for="observacoes">
+                    📝 Observações
+                </label>
+
+
+                <textarea
+                    id="observacoes"
+                    placeholder="Digite uma observação sobre a operação..."
+                ></textarea>
+
+
+            </div>
+
+
+            <div class="botoes-form">
+
+
+                <button
+                    type="button"
+                    class="btn-acao btn-salvar"
+                    id="salvarComprovante"
+                >
+
+                    <span>
+                        💾
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            SALVAR OPERAÇÃO
+                        </strong>
+
+                        <small>
+                            Registrar no histórico
+                        </small>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn-acao btn-copiar"
+                    id="copiarComprovante"
+                >
+
+                    <span>
+                        📋
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            COPIAR COMPROVANTE
+                        </strong>
+
+                        <small>
+                            Relatório + prints
+                        </small>
+
+                    </div>
+
+                </button>
+
+
+            </div>
+
+
+        </section>
+
+
+        <footer class="rodape">
+
+            China PRO Extractor
+            <span>•</span>
+            Sistema OCR para operações no jogo
+
+        </footer>
+
+
+    </main>
+
+
+</div>
+
+
+<!-- =====================================
+     MENU E PORCENTAGEM
+====================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
+        const overlay =
+        document.getElementById(
+            "overlayMenu"
+        );
+
+        const abrir =
+        document.getElementById(
+            "btnAbrirMenu"
+        );
+
+        const fechar =
+        document.getElementById(
+            "btnFecharMenu"
+        );
+
+        const atalhoOCR =
+        document.getElementById(
+            "atalhoOCR"
+        );
+
+
+        function abrirMenu(){
+
+            sidebar?.classList.add(
+                "aberta"
+            );
+
+            overlay?.classList.add(
+                "ativo"
+            );
+
+            document.body.classList.add(
+                "menu-aberto"
+            );
+
+        }
+
+
+        function fecharMenu(){
+
+            sidebar?.classList.remove(
+                "aberta"
+            );
+
+            overlay?.classList.remove(
+                "ativo"
+            );
+
+            document.body.classList.remove(
+                "menu-aberto"
+            );
+
+        }
+
+
+        abrir?.addEventListener(
+            "click",
+            abrirMenu
+        );
+
+
+        fechar?.addEventListener(
+            "click",
+            fecharMenu
+        );
+
+
+        overlay?.addEventListener(
+            "click",
+            fecharMenu
+        );
+
+
+        atalhoOCR?.addEventListener(
+            "click",
+            function(){
+
+                fecharMenu();
+
+                document
+                .getElementById(
+                    "secaoOCR"
+                )
+                ?.scrollIntoView({
+                    behavior:"smooth"
+                });
+
+            }
+        );
+
+
+        const campo =
+        document.getElementById(
+            "porcentagemAplicada"
+        );
+
+        const diminuir =
+        document.getElementById(
+            "diminuirPorcentagem"
+        );
+
+        const aumentar =
+        document.getElementById(
+            "aumentarPorcentagem"
+        );
+
+
+        function definirPorcentagem(
+            valor
+        ){
+
+            if(!campo){
+                return;
+            }
+
+            let numero =
+            Number(valor);
+
+            if(!Number.isFinite(numero)){
+                numero = -20;
+            }
+
+            numero =
+            Math.max(
+                -40,
+                Math.min(
+                    -20,
+                    numero
+                )
+            );
+
+            campo.value =
+            numero;
+
+            campo.dispatchEvent(
+                new Event(
+                    "input",
+                    {
+                        bubbles:true
+                    }
+                )
+            );
+
+        }
+
+
+        diminuir?.addEventListener(
+            "click",
+            function(){
+
+                definirPorcentagem(
+                    Number(
+                        campo.value || -20
+                    ) - 1
+                );
+
+            }
+        );
+
+
+        aumentar?.addEventListener(
+            "click",
+            function(){
+
+                definirPorcentagem(
+                    Number(
+                        campo.value || -20
+                    ) + 1
+                );
+
+            }
+        );
+
+
+        campo?.addEventListener(
+            "blur",
+            function(){
+
+                definirPorcentagem(
+                    campo.value
+                );
+
+            }
+        );
+
+    }
+);
+
+
+</script>
+
+
+<!-- =====================================
+     SCRIPTS DO SISTEMA
+====================================== -->
+<script src="{{ url_for('static', filename='js/imageprocessor.js') }}?v=45"></script>
+<script src="{{ url_for('static', filename='js/parser.js') }}?v=43"></script>
+<script src="{{ url_for('static', filename='js/ocr.js') }}?v=50"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=50"></script>
+</body>
+
+</html>

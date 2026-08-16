@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Relatórios</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <script>
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("/static/sw.js").catch(()=>{}));
+    }
+    </script>
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+<main class="content">
+
+
+<header class="topbar">
+
+<h1>
+📊 Relatórios
+</h1>
+
+
+<div class="usuario">
+
+👤 {{ current_user.usuario }}
+
+</div>
+
+
+</header>
+
+
+
+
+
+<section class="cards">
+
+
+<div class="card">
+
+<h3>
+Operações
+</h3>
+
+<strong>
+{{ total_operacoes }}
+</strong>
+
+</div>
+
+
+
+
+
+
+<div class="card">
+
+<h3>
+Total Lavado
+</h3>
+
+<strong>
+
+R$ {{ "{:,.2f}".format(valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+</strong>
+
+</div>
+
+
+
+
+
+
+<div class="card">
+
+<h3>
+Lucro Final
+</h3>
+
+<strong>
+
+R$ {{ "{:,.2f}".format(ganhos_total).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+</strong>
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+<section class="resultado">
+
+
+<h2>
+Ranking de Jogadores
+</h2>
+
+
+
+
+
+{% for jogador in jogadores %}
+
+
+
+<div class="campo-resultado">
+
+
+<label>
+Jogador:
+</label>
+
+
+<p>
+{{ jogador[0] }}
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div class="campo-resultado">
+
+
+<label>
+Operações:
+</label>
+
+
+<p>
+{{ jogador[1] }}
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+<div class="campo-resultado">
+
+
+<label>
+Valor lavado:
+</label>
+
+
+<p>
+
+R$ {{ "{:,.2f}".format(jogador[2] or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div class="campo-resultado">
+
+
+<label>
+Lucro Final:
+</label>
+
+
+<p>
+
+R$ {{ "{:,.2f}".format(jogador[3] or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}
+
+</p>
+
+
+</div>
+
+
+
+
+<hr>
+
+
+
+
+{% endfor %}
+
+
+
+
+
+<a href="{{ url_for('dashboard') }}">
+
+<button class="btn-processar">
+
+⬅ Voltar
+
+</button>
+
+</a>
+
+
+
+
+</section>
+
+
+
+</main>
+
+
+</div>
+
+
+
+</body>
+
+
+</html>

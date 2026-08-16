@@ -1,0 +1,40 @@
+NC PRO EXTRACTOR - CONFIGURACAO DO RENDER
+=========================================
+
+1. Crie/abra o PostgreSQL no Render.
+2. Deixe o banco e o Web Service na mesma regiao.
+3. No banco, copie a INTERNAL DATABASE URL.
+4. Abra o Web Service > Environment.
+5. Crie a variavel:
+
+   DATABASE_URL = [cole a Internal Database URL]
+
+6. Crie tambem uma SECRET_KEY forte, caso o Blueprint nao tenha gerado uma.
+7. Build Command:
+
+   pip install -r requirements.txt
+
+8. Start Command:
+
+   gunicorn app:app
+
+9. Salve e faca o deploy.
+
+IMPORTANTE
+---------
+- Nao use banco.db no Render.
+- Nao coloque a senha/URL do banco dentro do codigo.
+- Usuarios e relatorios ficam no PostgreSQL.
+- Cada operacao continua ligada ao usuario que a criou.
+- Ao excluir/resetar, a exclusao e confirmada no banco com commit.
+- Para conectar o Windows diretamente ao banco Render, use a External Database URL
+  somente como DATABASE_URL no seu ambiente local. Nunca publique essa URL.
+
+TESTE LOCAL SEM POSTGRES (OPCIONAL)
+----------------------------------
+PowerShell:
+
+  $env:USAR_SQLITE_LOCAL="1"
+  python app.py
+
+Isso cria apenas banco_local.db para teste. O SQLite local nunca e usado por padrao.

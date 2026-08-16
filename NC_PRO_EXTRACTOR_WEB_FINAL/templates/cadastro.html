@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NC PRO - Criar Conta</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.campo-select{width:100%;margin-bottom:14px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#15101d;color:#fff;outline:none}.campo-select option{background:#15101d;color:#fff}.ajuda-cargo{display:block;color:#9d91aa;font-size:12px;margin:-5px 0 15px;line-height:1.5}
+</style>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <script>
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("/static/sw.js").catch(()=>{}));
+    }
+    </script>
+</head>
+<body class="login-body">
+<div class="login-container"><div class="login-box">
+<h1>NC <span>PRO</span></h1>
+<p class="subtitulo">Criar nova conta</p>
+{% if erro %}<div class="erro">{{ erro }}</div>{% endif %}
+<form method="POST">
+<input type="text" name="usuario" placeholder="Digite seu usuário" required minlength="3">
+<input type="password" name="senha" placeholder="Digite sua senha" required minlength="6">
+<input type="password" name="confirmar_senha" placeholder="Confirme sua senha" required minlength="6">
+<select name="cargo" class="campo-select" required>
+<option value="" selected disabled>Selecione seu cargo atual</option>
+{% for cargo in cargos %}<option value="{{ cargo }}">{{ cargo }}</option>{% endfor %}
+</select>
+<small class="ajuda-cargo">O cargo define sua meta semanal e pode ser atualizado depois em Configurações.</small>
+<button type="submit">Cadastrar</button>
+</form>
+<a class="cadastro" href="{{ url_for('login') }}">Já tenho uma conta</a>
+</div></div>
+<footer class="assinatura-login">By: Sabrina Moraize &amp; Yure Oliveira</footer>
+</body>
+</html>

@@ -1,0 +1,46 @@
+NC PRO EXTRACTOR — WEB FINAL
+
+ESTRUTURA
+Os arquivos app.py, requirements.txt e templates/ já estão na raiz.
+Não configure Root Directory ao enviar esta pasta para uma hospedagem.
+
+COMANDOS
+Build:
+pip install -r requirements.txt
+
+Start:
+gunicorn app:app
+
+VARIÁVEIS ONLINE
+DATABASE_URL = URL PostgreSQL fornecida pela hospedagem/banco
+SECRET_KEY = chave aleatória longa
+HTTPS = 1
+
+TESTE LOCAL
+Sem DATABASE_URL o sistema usa banco_local.db automaticamente:
+python app.py
+
+RECURSOS
+- Login e cadastro com cargo obrigatório.
+- Dados isolados por usuário.
+- PostgreSQL online.
+- Prints de envio/recebimento salvos no próprio banco.
+- Histórico mantém os prints.
+- Exclusão realmente remove o relatório.
+- Data preenchida automaticamente.
+- OCR sob demanda.
+- Relatório + prints copiáveis.
+- Metas semanais domingo 00:00 → sábado 23:59.
+- Funcionário 50, Vendedor 40, Financista 30, Contador 20.
+- Doleiro: possível convite para Gerência.
+- Metas de papéis, spray e dinheiro conforme cargo/impulsos.
+- 0/1/2 impulsos.
+- Meta entregue Sim/Não.
+- Mensagens de promoção.
+- Relatórios e ranking.
+- Instalável como atalho/app pelo navegador (PWA).
+
+OBSERVAÇÃO MTA
+Um site hospedado não pode acessar silenciosamente qualquer pasta do Windows.
+Os prints podem ser enviados normalmente no OCR. A captura automática da pasta screenshots
+exige permissão explícita do navegador e é melhor tratada por um pequeno companion/launcher local.

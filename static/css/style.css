@@ -1,0 +1,786 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+
+body.login-body {
+
+    min-height: 100vh;
+
+    background:
+    radial-gradient(circle at top left, #ff4fd8, transparent 35%),
+    radial-gradient(circle at bottom right, #7b2cff, transparent 35%),
+    linear-gradient(
+        135deg,
+        #120018,
+        #260033,
+        #08000d
+    );
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+}
+
+
+
+.login-container {
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+
+.login-box {
+
+    width:390px;
+
+    padding:45px;
+
+
+    background:
+
+    rgba(255,255,255,0.10);
+
+
+    backdrop-filter: blur(18px);
+
+
+    border-radius:25px;
+
+
+    border:
+
+    1px solid rgba(255,255,255,0.25);
+
+
+    box-shadow:
+
+    0 0 50px rgba(255,0,200,0.35);
+
+
+    text-align:center;
+
+}
+
+
+
+.login-box h1 {
+
+    font-size:52px;
+
+    letter-spacing:5px;
+
+    color:white;
+
+}
+
+
+
+.login-box h1 span {
+
+    color:#ff4fd8;
+
+    text-shadow:
+
+    0 0 15px #ff4fd8;
+
+}
+
+
+
+.subtitulo {
+
+    margin-top:10px;
+
+    margin-bottom:30px;
+
+    color:#e0b6ff;
+
+}
+
+
+
+.login-box input {
+
+    width:100%;
+
+    padding:15px;
+
+    margin-bottom:18px;
+
+
+    border:none;
+
+    outline:none;
+
+
+    border-radius:12px;
+
+
+    background:
+
+    rgba(255,255,255,0.15);
+
+
+    color:white;
+
+
+    font-size:16px;
+
+}
+
+
+
+.login-box input::placeholder {
+
+    color:#e8cfff;
+
+}
+
+
+
+.login-box button {
+
+
+    width:100%;
+
+
+    padding:15px;
+
+
+    border:none;
+
+
+    border-radius:12px;
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #ff4fd8,
+        #8b2cff
+    );
+
+
+    color:white;
+
+
+    font-size:17px;
+
+
+    font-weight:bold;
+
+
+    cursor:pointer;
+
+
+    box-shadow:
+
+    0 0 20px rgba(255,79,216,0.6);
+
+
+    transition:.3s;
+
+}
+
+
+
+.login-box button:hover {
+
+
+    transform:scale(1.05);
+
+
+    box-shadow:
+
+    0 0 35px rgba(255,79,216,0.9);
+
+}
+
+
+
+.cadastro {
+
+
+    display:block;
+
+
+    margin-top:22px;
+
+
+    color:#ff8bea;
+
+
+    text-decoration:none;
+
+
+    font-weight:bold;
+
+}
+
+
+
+.cadastro:hover {
+
+    color:white;
+
+}
+
+
+
+.erro {
+
+
+    background:
+
+    rgba(255,0,90,0.25);
+
+
+    border:
+
+    1px solid #ff4f8b;
+
+
+    padding:12px;
+
+
+    border-radius:10px;
+
+
+    margin-bottom:18px;
+
+}
+
+
+
+.assinatura-login {
+
+
+    position:fixed;
+
+
+    bottom:20px;
+
+
+    width:100%;
+
+
+    text-align:center;
+
+
+    color:#d9a7ff;
+
+
+    font-size:14px;
+
+
+    letter-spacing:1px;
+
+
+}
+/* ============================= */
+/* DASHBOARD NC PRO PREMIUM */
+/* ============================= */
+
+
+body.dashboard-body {
+
+    min-height:100vh;
+
+    background:
+
+    radial-gradient(
+        circle at top left,
+        #ff4fd8,
+        transparent 30%
+    ),
+
+    radial-gradient(
+        circle at bottom right,
+        #7b2cff,
+        transparent 35%
+    ),
+
+    linear-gradient(
+        135deg,
+        #100015,
+        #1c0028,
+        #050008
+    );
+
+
+    color:white;
+
+    display:flex;
+
+}
+
+
+
+/* MENU LATERAL */
+
+.sidebar {
+
+
+    width:260px;
+
+
+    min-height:100vh;
+
+
+    padding:30px 20px;
+
+
+    background:
+
+    rgba(255,255,255,0.08);
+
+
+    backdrop-filter:blur(20px);
+
+
+    border-right:
+
+    1px solid rgba(255,255,255,0.15);
+
+
+    box-shadow:
+
+    0 0 30px rgba(255,79,216,0.25);
+
+
+}
+
+
+
+.sidebar h1 {
+
+
+    text-align:center;
+
+
+    font-size:45px;
+
+
+    letter-spacing:4px;
+
+
+    margin-bottom:40px;
+
+
+}
+
+
+
+.sidebar h1 span {
+
+
+    color:#ff4fd8;
+
+
+    text-shadow:
+
+    0 0 15px #ff4fd8;
+
+
+}
+
+
+
+
+.sidebar nav {
+
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+
+
+}
+
+
+
+
+.sidebar a {
+
+
+    text-decoration:none;
+
+
+    color:white;
+
+
+    padding:15px;
+
+
+    border-radius:12px;
+
+
+    transition:.3s;
+
+
+    background:
+
+    rgba(255,255,255,0.05);
+
+
+}
+
+
+
+.sidebar a:hover {
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #ff4fd8,
+        #8b2cff
+    );
+
+
+    transform:translateX(8px);
+
+
+}
+
+
+
+
+
+/* ÁREA PRINCIPAL */
+
+
+.main {
+
+
+    flex:1;
+
+
+    padding:35px;
+
+
+}
+
+
+
+
+
+header {
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    margin-bottom:35px;
+
+
+}
+
+
+
+
+header h2 {
+
+
+    font-size:32px;
+
+
+}
+
+
+
+header p {
+
+
+    color:#e0b6ff;
+
+
+}
+
+
+
+
+
+.logout {
+
+
+    text-decoration:none;
+
+
+    color:white;
+
+
+    padding:12px 25px;
+
+
+    border-radius:12px;
+
+
+    background:
+
+    linear-gradient(
+        90deg,
+        #ff4fd8,
+        #8b2cff
+    );
+
+
+    font-weight:bold;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.logout:hover {
+
+
+    transform:scale(1.05);
+
+
+}
+
+
+
+
+
+/* CARDS */
+
+
+.cards {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    repeat(3,1fr);
+
+
+    gap:25px;
+
+
+}
+
+
+
+
+.card {
+
+
+    padding:30px;
+
+
+    border-radius:20px;
+
+
+    background:
+
+    rgba(255,255,255,0.10);
+
+
+    backdrop-filter:blur(15px);
+
+
+    border:
+
+    1px solid rgba(255,255,255,0.15);
+
+
+    box-shadow:
+
+    0 0 25px rgba(255,79,216,0.20);
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.card:hover {
+
+
+    transform:translateY(-8px);
+
+
+    box-shadow:
+
+    0 0 35px rgba(255,79,216,0.50);
+
+
+}
+
+
+
+
+.card h3 {
+
+
+    color:#e0b6ff;
+
+
+    margin-bottom:15px;
+
+
+}
+
+
+
+.card strong {
+
+
+    font-size:38px;
+
+
+    color:#ff4fd8;
+
+
+}
+
+
+
+
+
+/* TABELA */
+
+
+.painel {
+
+
+    margin-top:35px;
+
+
+    padding:30px;
+
+
+    border-radius:20px;
+
+
+    background:
+
+    rgba(255,255,255,0.10);
+
+
+    backdrop-filter:blur(15px);
+
+
+}
+
+
+
+.painel h2 {
+
+
+    margin-bottom:20px;
+
+
+}
+
+
+
+
+
+table {
+
+
+    width:100%;
+
+
+    border-collapse:collapse;
+
+
+}
+
+
+
+th {
+
+
+    text-align:left;
+
+
+    padding:15px;
+
+
+    color:#ff8bea;
+
+
+}
+
+
+
+td {
+
+
+    padding:15px;
+
+
+    border-top:
+
+    1px solid rgba(255,255,255,0.15);
+
+
+    color:#eee;
+
+
+}
+
+
+
+
+
+/* ASSINATURA DASHBOARD */
+
+
+.assinatura {
+
+
+    position:fixed;
+
+
+    bottom:15px;
+
+
+    right:30px;
+
+
+    color:#d9a7ff;
+
+
+    font-size:14px;
+
+
+    letter-spacing:1px;
+
+
+}

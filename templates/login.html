@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <title>China PRO/by:sabrina moraize, yure oliveira- Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <script>
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("/static/sw.js").catch(()=>{}));
+    }
+    </script>
+</head>
+
+<body class="login-body">
+
+<div class="login-container">
+
+    <div class="login-box">
+
+        <h1>
+             China<span>PRO</span>
+        </h1>
+
+        <p class="subtitulo">
+            Sistema de Extração automática de lavagem
+        </p>
+
+        {% if erro %}
+        <div class="erro">
+            {{ erro }}
+        </div>
+        {% endif %}
+
+        <form method="POST">
+
+            <input
+                type="text"
+                name="usuario"
+                placeholder="Usuário"
+                required
+            >
+
+            <input
+                type="password"
+                name="senha"
+                placeholder="Senha"
+                required
+            >
+
+            <button type="submit">
+                Entrar
+            </button>
+
+        </form>
+
+        <a class="cadastro" href="{{ url_for('cadastro') }}">
+            Criar conta
+        </a>
+
+    </div>
+
+</div>
+
+<footer class="assinatura-login">
+
+    By: Sabrina Moraize &amp; Yure Oliveira
+
+</footer>
+
+</body>
+</html>

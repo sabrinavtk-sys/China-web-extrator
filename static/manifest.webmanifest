@@ -1,0 +1,9 @@
+{
+  "name": "NC PRO Extractor",
+  "short_name": "NC PRO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09060f",
+  "theme_color": "#e82dcd",
+  "description": "OCR, relatórios, metas e progressão semanal."
+}

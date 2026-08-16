@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#09060f"
+    >
+
+    <title>
+        Histórico - China PRO Extractor
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}?v=41"
+    >
+
+    <style>
+
+        /* =====================================================
+           HISTÓRICO PREMIUM
+        ===================================================== */
+
+        .historico-content {
+            min-width: 0;
+        }
+
+        .historico-topbar {
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .historico-resumo {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 28px;
+        }
+
+        .historico-resumo-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 132px;
+            padding: 22px;
+
+            border: 1px solid rgba(236, 72, 207, 0.22);
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(31, 20, 45, 0.96),
+                    rgba(15, 10, 25, 0.96)
+                );
+
+            box-shadow:
+                0 18px 50px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .historico-resumo-card::after {
+            content: "";
+
+            position: absolute;
+
+            width: 140px;
+            height: 140px;
+
+            right: -65px;
+            bottom: -80px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(232, 45, 205, 0.13);
+
+            filter: blur(10px);
+        }
+
+        .historico-resumo-card span {
+            display: block;
+
+            margin-bottom: 10px;
+
+            color: #a99db8;
+
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .historico-resumo-card strong {
+            position: relative;
+            z-index: 1;
+
+            display: block;
+
+            color: #ffffff;
+
+            font-size: clamp(25px, 3vw, 36px);
+            line-height: 1.1;
+
+            overflow-wrap: anywhere;
+        }
+
+        .historico-resumo-card small {
+            position: relative;
+            z-index: 1;
+
+            display: block;
+
+            margin-top: 10px;
+
+            color: #83778f;
+            font-size: 12px;
+        }
+
+        .historico-secao {
+            margin-top: 34px;
+        }
+
+        .historico-secao-topo {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin-bottom: 20px;
+        }
+
+        .historico-secao-topo h2 {
+            margin: 5px 0 0;
+
+            color: #ffffff;
+
+            font-size: clamp(24px, 3vw, 34px);
+        }
+
+        .historico-secao-topo p {
+            margin: 7px 0 0;
+
+            color: #978ba5;
+        }
+
+        .historico-contador {
+            flex: 0 0 auto;
+
+            padding: 9px 14px;
+
+            border:
+                1px solid
+                rgba(236, 72, 207, 0.3);
+
+            border-radius: 999px;
+
+            color: #f46bdf;
+
+            background:
+                rgba(232, 45, 205, 0.08);
+
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .historico-lista {
+            display: grid;
+            gap: 22px;
+        }
+
+        .operacao-card {
+            position: relative;
+
+            overflow: hidden;
+
+            padding: 0;
+
+            border:
+                1px solid
+                rgba(236, 72, 207, 0.22);
+
+            border-radius: 25px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(26, 17, 39, 0.98),
+                    rgba(12, 8, 21, 0.98)
+                );
+
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .operacao-card::before {
+            content: "";
+
+            position: absolute;
+
+            inset: 0 auto 0 0;
+
+            width: 4px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #ff2bd6,
+                    #8f35ff
+                );
+        }
+
+        .operacao-topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 24px 26px;
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.06);
+        }
+
+        .operacao-identidade {
+            display: flex;
+            align-items: center;
+
+            min-width: 0;
+
+            gap: 15px;
+        }
+
+        .operacao-avatar {
+            display: grid;
+            place-items: center;
+
+            flex: 0 0 48px;
+
+            width: 48px;
+            height: 48px;
+
+            border:
+                1px solid
+                rgba(236, 72, 207, 0.28);
+
+            border-radius: 15px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(232, 45, 205, 0.22),
+                    rgba(127, 55, 255, 0.15)
+                );
+
+            box-shadow:
+                0 10px 28px
+                rgba(232, 45, 205, 0.12);
+
+            font-size: 22px;
+        }
+
+        .operacao-identidade small {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color: #ff63df;
+
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .operacao-identidade h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: clamp(20px, 3vw, 28px);
+            line-height: 1.15;
+
+            overflow-wrap: anywhere;
+        }
+
+        .operacao-numero {
+            flex: 0 0 auto;
+
+            padding: 8px 12px;
+
+            border:
+                1px solid
+                rgba(155, 90, 255, 0.3);
+
+            border-radius: 999px;
+
+            color: #c78bff;
+
+            background:
+                rgba(132, 60, 255, 0.09);
+
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .operacao-corpo {
+            padding: 24px 26px 26px;
+        }
+
+        .operacao-dados {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+
+            gap: 14px;
+        }
+
+        .operacao-dado {
+            min-width: 0;
+
+            padding: 17px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.065);
+
+            border-radius: 17px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .operacao-dado.campo-destaque {
+            border-color:
+                rgba(236, 72, 207, 0.2);
+
+            background:
+                rgba(232, 45, 205, 0.055);
+        }
+
+        .operacao-dado span {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #8c8099;
+
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .operacao-dado strong {
+            display: block;
+
+            color: #f8f4fb;
+
+            font-size: 15px;
+            line-height: 1.35;
+
+            overflow-wrap: anywhere;
+        }
+
+        .operacao-dado.campo-destaque strong {
+            color: #ff61df;
+
+            font-size: 18px;
+        }
+
+        .operacao-observacoes {
+            margin-top: 15px;
+
+            padding: 18px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.065);
+
+            border-radius: 17px;
+
+            background:
+                rgba(0, 0, 0, 0.18);
+        }
+
+        .operacao-observacoes span {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #a99db8;
+
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        .operacao-observacoes p {
+            margin: 0;
+
+            color: #d7cedf;
+
+            line-height: 1.65;
+
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .operacao-acoes {
+            display: grid;
+
+            grid-template-columns:
+                1fr auto;
+
+            gap: 13px;
+
+            margin-top: 18px;
+        }
+
+        .btn-historico {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 56px;
+
+            padding: 13px 18px;
+
+            border: 0;
+            border-radius: 16px;
+
+            cursor: pointer;
+
+            font: inherit;
+            font-weight: 900;
+
+            transition:
+                transform 0.2s ease,
+                filter 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .btn-historico:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        .btn-historico-copiar {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    100deg,
+                    #f22bce,
+                    #9239ff
+                );
+
+            box-shadow:
+                0 13px 32px
+                rgba(220, 40, 210, 0.2);
+        }
+
+        .btn-historico-excluir {
+            min-width: 150px;
+
+            color: #ffb3c1;
+
+            border:
+                1px solid
+                rgba(255, 73, 112, 0.28);
+
+            background:
+                rgba(255, 52, 91, 0.09);
+        }
+
+        .btn-historico-excluir:hover {
+            color: #ffffff;
+
+            background:
+                rgba(255, 52, 91, 0.18);
+
+            box-shadow:
+                0 12px 28px
+                rgba(255, 52, 91, 0.1);
+        }
+
+        .historico-vazio {
+            display: grid;
+            place-items: center;
+
+            min-height: 280px;
+
+            padding: 40px 20px;
+
+            border:
+                1px dashed
+                rgba(236, 72, 207, 0.3);
+
+            border-radius: 24px;
+
+            color: #a99db8;
+
+            background:
+                rgba(255, 255, 255, 0.018);
+
+            text-align: center;
+        }
+
+        .historico-vazio span {
+            display: block;
+
+            margin-bottom: 14px;
+
+            font-size: 44px;
+        }
+
+        .historico-vazio h3 {
+            margin: 0 0 8px;
+
+            color: #ffffff;
+
+            font-size: 22px;
+        }
+
+        .historico-voltar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 50px;
+
+            margin-top: 24px;
+
+            padding: 12px 18px;
+
+            border:
+                1px solid
+                rgba(236, 72, 207, 0.25);
+
+            border-radius: 15px;
+
+            color: #f4dff2;
+
+            background:
+                rgba(232, 45, 205, 0.07);
+
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .historico-voltar:hover {
+            background:
+                rgba(232, 45, 205, 0.14);
+        }
+
+        @media (max-width: 980px) {
+
+            .historico-resumo {
+                grid-template-columns: 1fr;
+            }
+
+            .operacao-dados {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+        }
+
+        @media (max-width: 720px) {
+
+            .historico-topbar,
+            .historico-secao-topo,
+            .operacao-topo {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .operacao-numero,
+            .historico-contador {
+                align-self: flex-start;
+            }
+
+            .operacao-dados,
+            .operacao-acoes {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-historico-excluir {
+                min-width: 0;
+            }
+
+            .operacao-topo,
+            .operacao-corpo {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+        }
+
+    
+        .operacao-prints {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin: 18px 0;
+        }
+        .operacao-print {
+            overflow: hidden;
+            border: 1px solid rgba(236,72,207,.18);
+            border-radius: 16px;
+            background: rgba(255,255,255,.025);
+        }
+        .operacao-print span {
+            display:block;
+            padding:10px 12px;
+            color:#bcaec7;
+            font-size:11px;
+            font-weight:800;
+        }
+        .operacao-print img {
+            display:block;
+            width:100%;
+            height:220px;
+            object-fit:contain;
+            background:#09060f;
+        }
+        @media(max-width:700px){.operacao-prints{grid-template-columns:1fr}}
+
+    </style>
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+    <script>
+    if("serviceWorker" in navigator){
+      window.addEventListener("load",()=>navigator.serviceWorker.register("/static/sw.js").catch(()=>{}));
+    }
+    </script>
+</head>
+
+
+<body>
+
+
+<div class="app">
+        <!-- =====================================
+         MENU LATERAL
+    ====================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <div class="sidebar-topo">
+
+            <div class="logo">
+
+                <div class="logo-icone">
+                    C
+                </div>
+
+                <div class="logo-texto">
+
+                    <h2>
+                        ChinaPRO
+                    </h2>
+
+                    <span>
+                        EXTRACTOR
+                    </span>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn-fechar-menu"
+                id="btnFecharMenu"
+                aria-label="Fechar menu"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <nav class="menu-navegacao">
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    🏠
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('dashboard') }}#secaoOCR"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    📤
+                </span>
+
+                <span>
+                    OCR
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('historico') }}"
+                class="menu-link active"
+            >
+
+                <span class="menu-icone">
+                    📂
+                </span>
+
+                <span>
+                    Histórico
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('relatorios') }}"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    📊
+                </span>
+
+                <span>
+                    Relatórios
+                </span>
+
+            </a>
+
+
+            <button
+                type="button"
+                class="menu-link"
+            >
+
+                <span class="menu-icone">
+                    ⚙️
+                </span>
+
+                <span>
+                    Configurações
+                </span>
+
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-rodape">
+
+            <form
+                method="POST"
+                action="{{ url_for('reset_semanal') }}"
+                onsubmit="return confirmarResetSemanal();"
+            >
+
+                <button
+                    type="submit"
+                    class="menu-acao menu-reset"
+                >
+                    🔄 Reset Semanal
+                </button>
+
+            </form>
+
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="menu-acao menu-sair"
+            >
+                🚪 Sair
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <div
+        class="overlay-menu"
+        id="overlayMenu"
+    ></div>
+
+
+    <!-- =====================================
+         CONTEÚDO PRINCIPAL
+    ====================================== -->
+
+    <main class="content historico-content">
+
+
+        <!-- =====================================
+             CABEÇALHO
+        ====================================== -->
+
+        <header class="topbar historico-topbar">
+
+
+            <div class="topbar-inicio">
+
+
+                <button
+                    type="button"
+                    class="btn-abrir-menu"
+                    id="btnAbrirMenu"
+                    aria-label="Abrir menu"
+                >
+                    ☰
+                </button>
+
+
+                <div>
+
+                    <span class="topbar-legenda">
+                        REGISTROS DO SISTEMA
+                    </span>
+
+                    <h1>
+                        Histórico
+                    </h1>
+
+                    <p>
+                        Consulte, copie ou exclua as operações registradas.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="usuario">
+
+                <div class="usuario-avatar">
+                    👤
+                </div>
+
+                <div class="usuario-dados">
+
+                    <small>
+                        Usuário conectado
+                    </small>
+
+                    <strong>
+                        {{ current_user.usuario }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================
+             CALCULAR RESUMO
+        ====================================== -->
+
+        {% set total_valor = namespace(valor=0) %}
+
+        {% set total_ganho = namespace(valor=0) %}
+
+
+        {% for op in operacoes %}
+
+            {% set total_valor.valor =
+                total_valor.valor + (op.valor or 0)
+            %}
+
+            {% set total_ganho.valor =
+                total_ganho.valor + (op.valor_porcentagem or 0)
+            %}
+
+        {% endfor %}
+
+
+        <!-- =====================================
+             CARDS DE RESUMO
+        ====================================== -->
+
+        <section class="historico-resumo">
+
+
+            <article class="historico-resumo-card">
+
+                <span>
+                    Operações
+                </span>
+
+                <strong>
+                    {{ operacoes|length }}
+                </strong>
+
+                <small>
+                    Registros disponíveis
+                </small>
+
+            </article>
+
+
+            <article class="historico-resumo-card">
+
+                <span>
+                    Valor processado
+                </span>
+
+                <strong>
+
+                    R$ {{
+                        "{:,.2f}"
+                        .format(total_valor.valor)
+                        .replace(",", "X")
+                        .replace(".", ",")
+                        .replace("X", ".")
+                    }}
+
+                </strong>
+
+                <small>
+                    Soma das operações
+                </small>
+
+            </article>
+
+
+            <article class="historico-resumo-card">
+
+                <span>
+                    Ganhos acumulados
+                </span>
+
+                <strong>
+
+                    R$ {{
+                        "{:,.2f}"
+                        .format(total_ganho.valor)
+                        .replace(",", "X")
+                        .replace(".", ",")
+                        .replace("X", ".")
+                    }}
+
+                </strong>
+
+                <small>
+                    Soma dos ganhos
+                </small>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- =====================================
+             HISTÓRICO
+        ====================================== -->
+
+        <section class="historico-secao">
+
+
+            <div class="historico-secao-topo">
+
+
+                <div>
+
+                    <span class="topbar-legenda">
+                        OPERAÇÕES
+                    </span>
+
+                    <h2>
+                        Histórico completo
+                    </h2>
+
+                    <p>
+                        Todas as operações ficam organizadas em cards.
+                    </p>
+
+                </div>
+
+
+                <span class="historico-contador">
+
+                    Total: {{ operacoes|length }}
+
+                </span>
+
+
+            </div>
+
+
+            {% if operacoes %}
+
+
+                <div class="historico-lista">
+
+
+                    {% for op in operacoes %}
+
+
+                        <article class="operacao-card">
+
+
+                            <header class="operacao-topo">
+
+
+                                <div class="operacao-identidade">
+
+
+                                    <div class="operacao-avatar">
+                                        👤
+                                    </div>
+
+
+                                    <div>
+
+                                        <small>
+                                            Operação registrada
+                                        </small>
+
+                                        <h3>
+                                            {{ op.nome_jogador }}
+                                        </h3>
+
+                                    </div>
+
+
+                                </div>
+
+
+                                <span class="operacao-numero">
+
+                                    #{{ loop.index }}
+
+                                </span>
+
+
+                            </header>
+                                                        <div class="operacao-corpo">
+
+
+                                <div class="operacao-dados">
+
+
+                                    <div class="operacao-dado">
+
+                                        <span>
+                                            📅 Data e hora
+                                        </span>
+
+                                        <strong>
+                                            {{ op.data.strftime('%d/%m/%Y %H:%M') }}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="operacao-dado">
+
+                                        <span>
+                                            🆔 ID do jogador
+                                        </span>
+
+                                        <strong>
+                                            {{ op.id_jogador }}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="operacao-dado campo-destaque">
+
+                                        <span>
+                                            💵 Valor processado
+                                        </span>
+
+                                        <strong>
+
+                                            R$ {{
+                                                "{:,.2f}"
+                                                .format(op.valor)
+                                                .replace(",", "X")
+                                                .replace(".", ",")
+                                                .replace("X", ".")
+                                            }}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="operacao-dado">
+
+                                        <span>
+                                            📊 Porcentagem aplicada
+                                        </span>
+
+                                        <strong>
+                                            {{ op.porcentagem }}%
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="operacao-dado campo-destaque">
+
+                                        <span>
+                                            💎 Ganho da operação
+                                        </span>
+
+                                        <strong>
+
+                                            R$ {{
+                                                "{:,.2f}"
+                                                .format(op.valor_porcentagem)
+                                                .replace(",", "X")
+                                                .replace(".", ",")
+                                                .replace("X", ".")
+                                            }}
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="operacao-dado">
+
+                                        <span>
+                                            👤 Jogador
+                                        </span>
+
+                                        <strong>
+                                            {{ op.nome_jogador }}
+                                        </strong>
+
+                                    </div>
+
+
+                                </div>
+
+
+                                <div class="operacao-observacoes">
+
+                                    <span>
+                                        📝 Observações
+                                    </span>
+
+                                    <p>
+                                        {{ op.observacoes or "Sem observações." }}
+                                    </p>
+
+                                </div>
+
+
+
+                                {% if op.print_envio_dados or op.print_recebimento_dados %}
+                                <div class="operacao-prints">
+                                    {% if op.print_envio_dados %}
+                                    <div class="operacao-print">
+                                        <span>📤 PRINT DE ENVIO</span>
+                                        <img src="{{ url_for('print_operacao', id=op.id, tipo='envio') }}" alt="Print de envio">
+                                    </div>
+                                    {% endif %}
+                                    {% if op.print_recebimento_dados %}
+                                    <div class="operacao-print">
+                                        <span>📥 PRINT DE RECEBIMENTO</span>
+                                        <img src="{{ url_for('print_operacao', id=op.id, tipo='recebimento') }}" alt="Print de recebimento">
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="operacao-acoes">
+
+
+                                    <button
+                                        type="button"
+                                        class="btn-historico btn-historico-copiar"
+
+                                        data-nome="{{ op.nome_jogador }}"
+
+                                        data-id="{{ op.id_jogador }}"
+
+                                        data-data="{{ op.data.strftime('%d/%m/%Y %H:%M') }}"
+
+                                        data-valor="{{ op.valor }}"
+
+                                        data-porcentagem="{{ op.porcentagem }}"
+
+                                        data-ganho="{{ op.valor_porcentagem }}"
+
+                                        data-observacoes="{{ op.observacoes or 'Sem observações.' }}"
+                                        data-print-envio="{{ url_for('print_operacao', id=op.id, tipo='envio') if op.print_envio_dados else '' }}"
+                                        data-print-recebimento="{{ url_for('print_operacao', id=op.id, tipo='recebimento') if op.print_recebimento_dados else '' }}"
+
+                                        onclick="copiarHistorico(this)"
+                                    >
+                                        📋 COPIAR COMPROVANTE
+                                    </button>
+
+
+                                    <form
+                                        action="{{ url_for('excluir_operacao', id=op.id) }}"
+                                        method="POST"
+                                        onsubmit="return confirmarExclusao();"
+                                    >
+
+                                        <button
+                                            type="submit"
+                                            class="btn-historico btn-historico-excluir"
+                                        >
+                                            🗑️ EXCLUIR
+                                        </button>
+
+                                    </form>
+
+
+                                </div>
+
+
+                            </div>
+
+
+                        </article>
+
+
+                    {% endfor %}
+
+
+                </div>
+
+
+            {% else %}
+
+
+                <div class="historico-vazio">
+
+
+                    <div>
+
+                        <span>
+                            📂
+                        </span>
+
+                        <h3>
+                            Nenhuma operação encontrada
+                        </h3>
+
+                        <p>
+                            Os registros salvos aparecerão aqui.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+            {% endif %}
+
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="historico-voltar"
+            >
+                ← Voltar ao Dashboard
+            </a>
+
+
+        </section>
+
+
+        <footer class="rodape">
+
+            China PRO Extractor
+
+            <span>
+                •
+            </span>
+
+            Histórico de operações
+
+        </footer>
+
+
+    </main>
+
+
+</div>
+<script>
+
+    // =========================================================
+    // MENU MOBILE
+    // =========================================================
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function(){
+
+            const sidebar =
+                document.getElementById(
+                    "sidebar"
+                );
+
+            const overlay =
+                document.getElementById(
+                    "overlayMenu"
+                );
+
+            const abrir =
+                document.getElementById(
+                    "btnAbrirMenu"
+                );
+
+            const fechar =
+                document.getElementById(
+                    "btnFecharMenu"
+                );
+
+
+            function abrirMenu(){
+
+                sidebar?.classList.add(
+                    "aberta"
+                );
+
+                overlay?.classList.add(
+                    "ativo"
+                );
+
+                document.body.classList.add(
+                    "menu-aberto"
+                );
+
+            }
+
+
+            function fecharMenu(){
+
+                sidebar?.classList.remove(
+                    "aberta"
+                );
+
+                overlay?.classList.remove(
+                    "ativo"
+                );
+
+                document.body.classList.remove(
+                    "menu-aberto"
+                );
+
+            }
+
+
+            abrir?.addEventListener(
+                "click",
+                abrirMenu
+            );
+
+            fechar?.addEventListener(
+                "click",
+                fecharMenu
+            );
+
+            overlay?.addEventListener(
+                "click",
+                fecharMenu
+            );
+
+        }
+    );
+
+
+    // =========================================================
+    // FORMATAR DINHEIRO
+    // =========================================================
+
+    function formatarDinheiroHistorico(
+        valor
+    ){
+
+        const numero =
+            Number(
+                valor
+            ) || 0;
+
+
+        return numero.toLocaleString(
+            "pt-BR",
+            {
+                style:
+                    "currency",
+
+                currency:
+                    "BRL",
+
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // COPIAR HISTÓRICO
+    // =========================================================
+
+    async function copiarHistorico(
+        botao
+    ){
+
+        const nome =
+            botao.dataset.nome ||
+            "---";
+
+        const id =
+            botao.dataset.id ||
+            "---";
+
+        const data =
+            botao.dataset.data ||
+            "---";
+
+        const valor =
+            formatarDinheiroHistorico(
+                botao.dataset.valor
+            );
+
+        const porcentagem =
+            botao.dataset.porcentagem ||
+            "0";
+
+        const ganho =
+            formatarDinheiroHistorico(
+                botao.dataset.ganho
+            );
+
+        const observacoes =
+            botao.dataset.observacoes ||
+            "Sem observações.";
+
+
+        const texto =
+`╔════════════════════════════╗
+     CHINA PRO EXTRACTOR
+       RESUMO DA OPERAÇÃO
+╚════════════════════════════╝
+
+👤 Jogador:
+${nome}
+
+🆔 ID:
+${id}
+
+📅 Data:
+${data}
+
+💵 Valor processado:
+${valor}
+
+📊 Porcentagem aplicada:
+${porcentagem}%
+
+💎 Ganho da operação:
+${ganho}
+
+📝 Observações:
+${observacoes}`;
+
+
+        try{
+
+            if(
+                navigator.clipboard &&
+                window.isSecureContext
+            ){
+
+                await navigator.clipboard.writeText(
+                    texto
+                );
+
+            }
+            else{
+
+                copiarTextoAlternativo(
+                    texto
+                );
+
+            }
+
+
+            const textoOriginal =
+                botao.innerHTML;
+
+
+            botao.innerHTML =
+                "✅ COMPROVANTE COPIADO";
+
+
+            setTimeout(
+                function(){
+
+                    botao.innerHTML =
+                        textoOriginal;
+
+                },
+                1800
+            );
+
+        }
+        catch(erro){
+
+            console.error(
+                "ERRO AO COPIAR:",
+                erro
+            );
+
+
+            alert(
+                "Não foi possível copiar o comprovante."
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CÓPIA ALTERNATIVA
+    // =========================================================
+
+    function copiarTextoAlternativo(
+        texto
+    ){
+
+        const campo =
+            document.createElement(
+                "textarea"
+            );
+
+
+        campo.value =
+            texto;
+
+
+        campo.setAttribute(
+            "readonly",
+            ""
+        );
+
+
+        campo.style.position =
+            "fixed";
+
+        campo.style.left =
+            "-9999px";
+
+        campo.style.top =
+            "-9999px";
+
+        campo.style.opacity =
+            "0";
+
+
+        document.body.appendChild(
+            campo
+        );
+
+
+        campo.focus();
+
+        campo.select();
+
+        campo.setSelectionRange(
+            0,
+            campo.value.length
+        );
+
+
+        const copiado =
+            document.execCommand(
+                "copy"
+            );
+
+
+        campo.remove();
+
+
+        if(!copiado){
+
+            throw new Error(
+                "O navegador recusou a cópia."
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // CONFIRMAÇÕES
+    // =========================================================
+
+    function confirmarExclusao(){
+
+        return confirm(
+            "⚠️ Tem certeza que deseja excluir esta operação?"
+        );
+
+    }
+
+
+    function confirmarResetSemanal(){
+
+        return confirm(
+            "⚠️ Tem certeza que deseja apagar todas as operações da semana?"
+        );
+
+    }
+
+</script>
+
+
+</body>
+
+</html>

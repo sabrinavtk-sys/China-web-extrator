@@ -1227,12 +1227,10 @@
                                         data-ganho="{{ op.valor_porcentagem }}"
 
                                         data-observacoes="{{ op.observacoes or 'Sem observações.' }}"
-                                        data-print-envio="{{ url_for('print_operacao', id=op.id, tipo='envio') if op.print_envio_dados else '' }}"
-                                        data-print-recebimento="{{ url_for('print_operacao', id=op.id, tipo='recebimento') if op.print_recebimento_dados else '' }}"
 
                                         onclick="copiarHistorico(this)"
                                     >
-                                        📋 COPIAR COMPROVANTE
+                                        📋 COPIAR RELATÓRIO EM TEXTO
                                     </button>
 
 
@@ -1467,13 +1465,31 @@
                 botao.dataset.valor
             );
 
+        const porcentagemNumero =
+            Math.abs(
+                Number(
+                    botao.dataset.porcentagem || 0
+                )
+            );
+
         const porcentagem =
-            botao.dataset.porcentagem ||
-            "0";
+            Number.isInteger(
+                porcentagemNumero
+            )
+            ? String(
+                porcentagemNumero
+            )
+            : porcentagemNumero
+                .toFixed(2)
+                .replace(".", ",");
 
         const ganho =
             formatarDinheiroHistorico(
-                botao.dataset.ganho
+                Math.abs(
+                    Number(
+                        botao.dataset.ganho || 0
+                    )
+                )
             );
 
         const observacoes =
@@ -1482,31 +1498,17 @@
 
 
         const texto =
-`╔════════════════════════════╗
-     CHINA PRO EXTRACTOR
-       RESUMO DA OPERAÇÃO
-╚════════════════════════════╝
+`CHINA PRO EXTRACTOR — RESUMO DA OPERAÇÃO
 
-👤 Jogador:
-${nome}
+👤 Jogador: ${nome}
+🆔 ID: ${id}
+📅 Data: ${data}
 
-🆔 ID:
-${id}
+💵 Valor processado: ${valor}
+📊 Porcentagem aplicada: ${porcentagem}%
+💎 Ganho da operação: ${ganho}
 
-📅 Data:
-${data}
-
-💵 Valor processado:
-${valor}
-
-📊 Porcentagem aplicada:
-${porcentagem}%
-
-💎 Ganho da operação:
-${ganho}
-
-📝 Observações:
-${observacoes}`;
+📝 Observações: ${observacoes}`;
 
 
         try{
@@ -1535,7 +1537,7 @@ ${observacoes}`;
 
 
             botao.innerHTML =
-                "✅ COMPROVANTE COPIADO";
+                "✅ TEXTO COPIADO";
 
 
             setTimeout(
@@ -1558,7 +1560,7 @@ ${observacoes}`;
 
 
             alert(
-                "Não foi possível copiar o comprovante."
+                "Não foi possível copiar o relatório."
             );
 
         }

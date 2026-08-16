@@ -1053,21 +1053,59 @@ function configurarBotaoCopiar(){
 // =========================================================
 
 function gerarTextoComprovante(){
+
     const dados = obterDadosOperacao();
 
-    const valorFormatado = formatarDinheiro(dados.valor);
-    const ganhoFormatado = formatarDinheiro(dados.valor_porcentagem);
-    const observacoes = dados.observacoes || "Sem observações.";
+    const valorFormatado =
+        formatarDinheiro(
+            dados.valor
+        );
 
-    return `CHINA PRO EXTRACTOR — RESUMO DA OPERAÇÃO
+    const ganhoFormatado =
+        formatarDinheiro(
+            Math.abs(
+                Number(
+                    dados.valor_porcentagem || 0
+                )
+            )
+        );
+
+    const porcentagem =
+        Math.abs(
+            Number(
+                dados.porcentagem || 0
+            )
+        );
+
+    const porcentagemFormatada =
+        Number.isInteger(
+            porcentagem
+        )
+        ? String(
+            porcentagem
+        )
+        : porcentagem
+            .toFixed(2)
+            .replace(".", ",");
+
+    const observacoes =
+        dados.observacoes ||
+        "Sem observações.";
+
+    return (
+`CHINA PRO EXTRACTOR — RESUMO DA OPERAÇÃO
 
 👤 Jogador: ${dados.nome_jogador}
 🆔 ID: ${dados.id_jogador}
 📅 Data: ${dados.data_exibicao}
+
 💵 Valor processado: ${valorFormatado}
-📊 Porcentagem aplicada: ${dados.porcentagem}%
+📊 Porcentagem aplicada: ${porcentagemFormatada}%
 💎 Ganho da operação: ${ganhoFormatado}
-📝 Observações: ${observacoes}`;
+
+📝 Observações: ${observacoes}`
+    );
+
 }
 
 
@@ -1076,38 +1114,90 @@ function gerarTextoComprovante(){
 // =========================================================
 
 async function copiarComprovante(){
-    const dados = obterDadosOperacao();
-    if(!validarDadosOperacao(dados)) return false;
 
-    const texto = gerarTextoComprovante();
+    const dados =
+        obterDadosOperacao();
+
+    if(
+        !validarDadosOperacao(
+            dados
+        )
+    ){
+        return false;
+    }
+
+    const texto =
+        gerarTextoComprovante();
 
     try{
-        if(navigator.clipboard && window.isSecureContext){
-            await navigator.clipboard.writeText(texto);
-        } else {
-            copiarTextoAlternativo(texto);
+
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard.writeText(
+                texto
+            );
+
+        }
+        else{
+
+            copiarTextoAlternativo(
+                texto
+            );
+
         }
 
-        alert("✅ Relatório em texto copiado!");
+        alert(
+            "✅ Relatório em texto copiado!"
+        );
+
         return true;
+
     }
     catch(erro){
-        console.error("ERRO AO COPIAR:", erro);
+
+        console.error(
+            "ERRO AO COPIAR RELATÓRIO:",
+            erro
+        );
 
         try{
-            copiarTextoAlternativo(texto);
-            alert("✅ Relatório em texto copiado!");
+
+            copiarTextoAlternativo(
+                texto
+            );
+
+            alert(
+                "✅ Relatório em texto copiado!"
+            );
+
             return true;
+
         }
         catch(erroAlternativo){
-            console.error("ERRO NO MÉTODO ALTERNATIVO:", erroAlternativo);
-            alert("❌ Não foi possível copiar o relatório.");
+
+            console.error(
+                "ERRO NO MÉTODO ALTERNATIVO:",
+                erroAlternativo
+            );
+
+            alert(
+                "❌ Não foi possível copiar o relatório."
+            );
+
             return false;
+
         }
+
     }
+
 }
 
-window.copiarComprovante = copiarComprovante;
+
+window.copiarComprovante =
+copiarComprovante;
 
 
 // =========================================================

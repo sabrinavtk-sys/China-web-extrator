@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    console.log("OCR.JS v44 CARREGADO");
+    console.log("OCR.JS v45 CARREGADO");
 
     // =========================================================
     // ESTADO PRIVADO
@@ -997,6 +997,9 @@
                 idJogador:
                     "---",
 
+                dataOperacao:
+                    "---",
+
                 valorRecebido:
                     "R$ 0",
 
@@ -1060,8 +1063,38 @@
                 "---";
         }
 
-        if (data && !data.dataset.dataFixa) {
-            data.textContent = resultado.data || data.textContent;
+        if (data) {
+
+            const dataOCR =
+                String(
+                    resultado.data || ""
+                )
+                .trim();
+
+            if(
+                dataOCR &&
+                dataOCR !== "---"
+            ){
+
+                /*
+                    A data e a hora devem vir do print.
+                    Removemos qualquer marcação que impeça o OCR
+                    de atualizar o campo.
+                */
+
+                delete data.dataset.dataFixa;
+
+                data.textContent =
+                    dataOCR;
+
+
+                console.log(
+                    "DATA/HORA APLICADA DO PRINT:",
+                    dataOCR
+                );
+
+            }
+
         }
 
         const valorRecebido =
@@ -1158,7 +1191,7 @@
             );
 
             console.log(
-                "INICIANDO PROCESSAMENTO OCR v44"
+                "INICIANDO PROCESSAMENTO OCR v45"
             );
 
             console.log(
@@ -1363,6 +1396,6 @@
         limparProcessamentoAnterior;
 
     console.log(
-        "OCR.JS v44 PRONTO"
+        "OCR.JS v45 PRONTO"
     );
 })();

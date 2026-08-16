@@ -1054,172 +1054,147 @@ function configurarBotaoCopiar(){
 
 function gerarTextoComprovante(){
 
-    const dados =
-    obterDadosOperacao();
-
+    const dados = obterDadosOperacao();
 
     const valorFormatado =
-    formatarDinheiro(
-        dados.valor
-    );
-
+        formatarDinheiro(
+            dados.valor
+        );
 
     const ganhoFormatado =
-    formatarDinheiro(
-        dados.valor_porcentagem
-    );
+        formatarDinheiro(
+            Math.abs(
+                Number(
+                    dados.valor_porcentagem || 0
+                )
+            )
+        );
 
+    const porcentagem =
+        Math.abs(
+            Number(
+                dados.porcentagem || 0
+            )
+        );
+
+    const porcentagemFormatada =
+        Number.isInteger(
+            porcentagem
+        )
+        ? String(
+            porcentagem
+        )
+        : porcentagem
+            .toFixed(2)
+            .replace(".", ",");
 
     const observacoes =
-    dados.observacoes ||
-    "Sem observações.";
-
+        dados.observacoes ||
+        "Sem observações.";
 
     return (
-`╔════════════════════════════╗
-     CHINA PRO EXTRACTOR
-       RESUMO DA OPERAÇÃO
-╚════════════════════════════╝
+`CHINA PRO EXTRACTOR — RESUMO DA OPERAÇÃO
 
-👤 Jogador:
-${dados.nome_jogador}
+👤 Jogador: ${dados.nome_jogador}
+🆔 ID: ${dados.id_jogador}
+📅 Data: ${dados.data_exibicao}
 
-🆔 ID:
-${dados.id_jogador}
+💵 Valor processado: ${valorFormatado}
+📊 Porcentagem aplicada: ${porcentagemFormatada}%
+💎 Ganho da operação: ${ganhoFormatado}
 
-📅 Data:
-${dados.data_exibicao}
-
-💵 Valor processado:
-${valorFormatado}
-
-📊 Porcentagem aplicada:
-${dados.porcentagem}%
-
-💎 Ganho da operação:
-${ganhoFormatado}
-
-📝 Observações:
-${observacoes}`
+📝 Observações: ${observacoes}`
     );
 
 }
 
 
 // =========================================================
-// COPIAR COMPROVANTE
+// COPIAR COMPROVANTE — SOMENTE TEXTO
 // =========================================================
 
-async function imagemParaBitmap(file){
-    return await createImageBitmap(file);
-}
-
-function quebrarLinhaCanvas(ctx, texto, larguraMaxima){
-    const palavras = String(texto || "").split(/\s+/);
-    const linhas = [];
-    let linha = "";
-    for(const palavra of palavras){
-        const teste = linha ? linha + " " + palavra : palavra;
-        if(ctx.measureText(teste).width > larguraMaxima && linha){
-            linhas.push(linha);
-            linha = palavra;
-        } else {
-            linha = teste;
-        }
-    }
-    if(linha) linhas.push(linha);
-    return linhas;
-}
-
-async function gerarRelatorioImagem(texto){
-    const arquivoEnvio = obterElemento("printEnvio")?.files?.[0];
-    const arquivoRecebimento = obterElemento("printRecebimento")?.files?.[0];
-    if(!arquivoEnvio && !arquivoRecebimento) return null;
-
-    const imagens = [];
-    for(const arq of [arquivoEnvio, arquivoRecebimento]){
-        if(arq && arq.type.startsWith("image/")) imagens.push(await imagemParaBitmap(arq));
-    }
-
-    const largura = 1200;
-    const margem = 50;
-    const canvasTemp = document.createElement("canvas");
-    const ctxTemp = canvasTemp.getContext("2d");
-    ctxTemp.font = "28px Arial";
-    const linhas = [];
-    for(const trecho of texto.split("\n")){
-        if(!trecho.trim()) linhas.push("");
-        else linhas.push(...quebrarLinhaCanvas(ctxTemp, trecho, largura - margem*2));
-    }
-    const alturaTexto = Math.max(420, linhas.length * 38 + margem*2);
-    let alturaImagens = 0;
-    const dimensoes = imagens.map(img => {
-        const w = largura - margem*2;
-        const h = Math.round(img.height * (w / img.width));
-        alturaImagens += h + 30;
-        return {img,w,h};
-    });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = largura;
-    canvas.height = alturaTexto + alturaImagens + margem;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#100b18";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "28px Arial";
-    let y = margem + 28;
-    for(const linha of linhas){
-        ctx.fillText(linha, margem, y);
-        y += 38;
-    }
-    y = alturaTexto;
-    for(const item of dimensoes){
-        ctx.drawImage(item.img, margem, y, item.w, item.h);
-        y += item.h + 30;
-    }
-    return await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1));
-}
-
 async function copiarComprovante(){
-    const dados = obterDadosOperacao();
-    if(!validarDadosOperacao(dados)) return false;
 
-    const texto = gerarTextoComprovante();
+    const dados =
+        obterDadosOperacao();
+
+    if(
+        !validarDadosOperacao(
+            dados
+        )
+    ){
+        return false;
+    }
+
+    const texto =
+        gerarTextoComprovante();
+
     try{
-        if(navigator.clipboard && window.isSecureContext && window.ClipboardItem){
-            const imagemRelatorio = await gerarRelatorioImagem(texto);
-            if(imagemRelatorio){
-                await navigator.clipboard.write([
-                    new ClipboardItem({"image/png": imagemRelatorio})
-                ]);
-                alert("✅ Relatório + prints copiados como uma imagem única!");
-                return true;
-            }
+
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard.writeText(
+                texto
+            );
+
+        }
+        else{
+
+            copiarTextoAlternativo(
+                texto
+            );
+
         }
 
-        if(navigator.clipboard && window.isSecureContext){
-            await navigator.clipboard.writeText(texto);
-        } else {
-            copiarTextoAlternativo(texto);
-        }
-        alert("✅ Comprovante copiado!");
+        alert(
+            "✅ Relatório em texto copiado!"
+        );
+
         return true;
+
     }
     catch(erro){
-        console.error("ERRO AO COPIAR:", erro);
+
+        console.error(
+            "ERRO AO COPIAR RELATÓRIO:",
+            erro
+        );
+
         try{
-            copiarTextoAlternativo(texto);
-            alert("✅ Texto do comprovante copiado. O navegador não permitiu copiar os prints juntos.");
+
+            copiarTextoAlternativo(
+                texto
+            );
+
+            alert(
+                "✅ Relatório em texto copiado!"
+            );
+
             return true;
+
         }
         catch(erroAlternativo){
-            console.error("ERRO NO MÉTODO ALTERNATIVO:", erroAlternativo);
-            alert("❌ Não foi possível copiar o comprovante.");
+
+            console.error(
+                "ERRO NO MÉTODO ALTERNATIVO:",
+                erroAlternativo
+            );
+
+            alert(
+                "❌ Não foi possível copiar o relatório."
+            );
+
             return false;
+
         }
+
     }
+
 }
+
 
 window.copiarComprovante =
 copiarComprovante;

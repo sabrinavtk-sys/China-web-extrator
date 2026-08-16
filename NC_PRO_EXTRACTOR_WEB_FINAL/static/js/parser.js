@@ -1,4 +1,4 @@
-console.log("PARSER.JS v42 CARREGADO");
+console.log("PARSER.JS v43 CARREGADO");
 
 
 // =========================================================
@@ -1317,29 +1317,389 @@ function pegarJogador(
 
 function pegarData(texto){
 
-    const textoLimpo =
-    textoEmUmaLinha(
-        texto
-    );
+    const original =
+        limparTexto(
+            texto
+        );
+
+    /*
+        O OCR pode confundir:
+        O/o -> 0
+        I/l/| -> 1
+
+        Mas só corrigimos em trechos que parecem data/hora,
+        para não destruir o restante do texto.
+    */
+
+    const corrigirDataHora =
+        valor =>
+        String(
+            valor || ""
+        )
+        .replace(/[oO]/g, "0")
+        .replace(/[iIlL|]/g, "1")
+        .replace(/[;,]/g, ":")
+        .replace(/\s+/g, " ")
+        .trim();
 
 
-    const busca =
-    textoLimpo.match(
-        /\b(\d{2})[\/.-](\d{2})[\/.-](\d{4})\s*[-–—]?\s*(\d{2}):(\d{2})\b/
-    );
+    /*
+        1) DATA + HORA no mesmo trecho.
+
+        Aceita, por exemplo:
+
+        16/08/2026 15:32
+        16-08-2026 - 15:32
+        16.08.2026 às 15:32
+        16/08/2026 | 15.32
+        16/08/2026 15 32
+        16/08/2026 15;32
+    */
+
+    const padraoCompleto =
+        /(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})[\s\S]{0,18}?(\d{1,2})\s*[:.;\s]\s*(\d{2})/g;
 
 
-    if(!busca){
+    let correspondencia;
+
+
+    while(
+        (
+            correspondencia =
+                padraoCompleto.exec(
+                    corrigirDataHora(
+                        original
+                    )
+                )
+        ) !== null
+    ){
+
+        const dia =
+            Number(
+                correspondencia[1]
+            );
+
+        const mes =
+            Number(
+                correspondencia[2]
+            );
+
+        const ano =
+            Number(
+                correspondencia[3]
+            );
+
+        const hora =
+            Number(
+                correspondencia[4]
+            );
+
+        const minuto =
+            Number(
+                correspondencia[5]
+            );
+
+
+        if(
+            dia >= 1 &&
+            dia <= 31 &&
+            mes >= 1 &&
+            mes <= 12 &&
+            ano >= 2000 &&
+            ano <= 2100 &&
+            hora >= 0 &&
+            hora <= 23 &&
+            minuto >= 0 &&
+            minuto <= 59
+        ){
+
+            return (
+                String(dia)
+                    .padStart(2, "0")
+                +
+                "/"
+                +
+                String(mes)
+                    .padStart(2, "0")
+                +
+                "/"
+                +
+                String(ano)
+                +
+                " "
+                +
+                String(hora)
+                    .padStart(2, "0")
+                +
+                ":"
+                +
+                String(minuto)
+                    .padStart(2, "0")
+            );
+
+        }
+
+    }
+
+
+    /*
+        2) Se a data e a hora vierem quebradas em linhas diferentes,
+        procuramos primeiro a data e depois uma hora próxima.
+
+        Exemplo do OCR:
+
+        16/08/2026
+        ...
+        15:32
+    */
+
+    const textoCorrigido =
+        corrigirDataHora(
+            original
+        );
+
+
+    const buscaData =
+        textoCorrigido.match(
+            /(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/
+        );
+
+
+    if(
+        !buscaData
+    ){
+
+        console.warn(
+            "DATA DO PRINT NÃO IDENTIFICADA"
+        );
 
         return "---";
 
     }
 
 
-    return (
-        `${busca[1]}/${busca[2]}/${busca[3]} ` +
-        `${busca[4]}:${busca[5]}`
+    const dia =
+        Number(
+            buscaData[1]
+        );
+
+    const mes =
+        Number(
+            buscaData[2]
+        );
+
+    const ano =
+        Number(
+            buscaData[3]
+        );
+
+
+    if(
+        dia < 1 ||
+        dia > 31 ||
+        mes < 1 ||
+        mes > 12 ||
+        ano < 2000 ||
+        ano > 2100
+    ){
+
+        console.warn(
+            "DATA DO PRINT INVÁLIDA:",
+            buscaData[0]
+        );
+
+        return "---";
+
+    }
+
+
+    const indiceData =
+        textoCorrigido.indexOf(
+            buscaData[0]
+        );
+
+
+    /*
+        A hora precisa estar próxima da data.
+        Assim evitamos usar ping, FPS, dinheiro ou outro número.
+    */
+
+    const inicioJanela =
+        Math.max(
+            0,
+            indiceData - 35
+        );
+
+    const fimJanela =
+        Math.min(
+            textoCorrigido.length,
+            indiceData +
+            buscaData[0].length +
+            80
+        );
+
+
+    const contexto =
+        textoCorrigido.slice(
+            inicioJanela,
+            fimJanela
+        );
+
+
+    const horas =
+        [
+            ...contexto.matchAll(
+                /\b([01]?\d|2[0-3])\s*[:.;]\s*([0-5]\d)\b/g
+            )
+        ];
+
+
+    let horaEscolhida =
+        null;
+
+
+    for(
+        const hora of horas
+    ){
+
+        const horaNumero =
+            Number(
+                hora[1]
+            );
+
+        const minutoNumero =
+            Number(
+                hora[2]
+            );
+
+
+        if(
+            horaNumero >= 0 &&
+            horaNumero <= 23 &&
+            minutoNumero >= 0 &&
+            minutoNumero <= 59
+        ){
+
+            horaEscolhida = {
+                hora:
+                    horaNumero,
+
+                minuto:
+                    minutoNumero
+            };
+
+            break;
+
+        }
+
+    }
+
+
+    if(
+        !horaEscolhida
+    ){
+
+        /*
+            Última tentativa:
+            alguns OCRs retornam "15 32" em vez de "15:32".
+            Só aceitamos se estiver bem perto da data.
+        */
+
+        const buscaHoraEspacada =
+            contexto.match(
+                /\b([01]?\d|2[0-3])\s+([0-5]\d)\b/
+            );
+
+
+        if(
+            buscaHoraEspacada
+        ){
+
+            horaEscolhida = {
+                hora:
+                    Number(
+                        buscaHoraEspacada[1]
+                    ),
+
+                minuto:
+                    Number(
+                        buscaHoraEspacada[2]
+                    )
+            };
+
+        }
+
+    }
+
+
+    if(
+        !horaEscolhida
+    ){
+
+        console.warn(
+            "DATA ENCONTRADA, MAS HORA DO PRINT NÃO IDENTIFICADA:",
+            buscaData[0]
+        );
+
+        /*
+            Não usamos hora do computador.
+            A informação deve continuar fiel ao print.
+        */
+
+        return (
+            String(dia)
+                .padStart(2, "0")
+            +
+            "/"
+            +
+            String(mes)
+                .padStart(2, "0")
+            +
+            "/"
+            +
+            String(ano)
+        );
+
+    }
+
+
+    const resultado =
+        (
+            String(dia)
+                .padStart(2, "0")
+            +
+            "/"
+            +
+            String(mes)
+                .padStart(2, "0")
+            +
+            "/"
+            +
+            String(ano)
+            +
+            " "
+            +
+            String(
+                horaEscolhida.hora
+            )
+            .padStart(2, "0")
+            +
+            ":"
+            +
+            String(
+                horaEscolhida.minuto
+            )
+            .padStart(2, "0")
+        );
+
+
+    console.log(
+        "DATA E HORA IDENTIFICADAS NO PRINT:",
+        resultado
     );
+
+
+    return resultado;
 
 }
 
@@ -1359,7 +1719,7 @@ function parseOCR(
 
 
     console.log(
-        "PARSER v42 RECEBEU OCR"
+        "PARSER v43 RECEBEU OCR"
     );
 
 
@@ -1466,7 +1826,62 @@ function parseOCR(
 // TESTES DO PARSER
 // =========================================================
 
-function testarParserV42(){
+function testarParserV43(){
+
+
+    /*
+        Testes específicos de data e hora do print.
+    */
+
+    const testesDataHora = [
+
+        [
+            "16/08/2026 15:32",
+            "16/08/2026 15:32"
+        ],
+
+        [
+            "16-08-2026 - 15:32",
+            "16/08/2026 15:32"
+        ],
+
+        [
+            "16.08.2026 às 15.32",
+            "16/08/2026 15:32"
+        ],
+
+        [
+            "16/08/2026 | 15;32",
+            "16/08/2026 15:32"
+        ]
+
+    ];
+
+
+    testesDataHora.forEach(
+        ([entrada, esperado]) => {
+
+            const encontrado =
+                pegarData(
+                    entrada
+                );
+
+            console.log(
+                "TESTE DATA/HORA:",
+                entrada,
+                "| ENCONTRADO:",
+                encontrado,
+                "| ESPERADO:",
+                esperado,
+                "| STATUS:",
+                encontrado === esperado
+                    ? "OK"
+                    : "FALHOU"
+            );
+
+        }
+    );
+
 
     const testes = [
 
@@ -1572,10 +1987,10 @@ window.converterValor =
 converterValor;
 
 
-window.testarParserV42 =
-testarParserV42;
+window.testarParserV43 =
+testarParserV43;
 
 
 console.log(
-    "PARSER.JS v42 PRONTO"
+    "PARSER.JS v43 PRONTO"
 );

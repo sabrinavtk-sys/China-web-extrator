@@ -337,27 +337,100 @@ def configurar_rotas(app):
             return resposta_erro("O ID do jogador é inválido.")
 
         try:
-            valor = converter_decimal(dados.get("valor"), "valor")
-            porcentagem = converter_decimal(dados.get("porcentagem"), "porcentagem")
-            valor_porcentagem = converter_decimal(dados.get("valor_porcentagem"), "valor_porcentagem")
+            valor = converter_decimal(
+                dados.get("valor"),
+                "valor original",
+            )
+            valor_envio = converter_decimal(
+                dados.get("valor_envio"),
+                "valor enviado",
+            )
         except ValueError as erro:
             return resposta_erro(str(erro))
 
         if valor <= 0:
-            return resposta_erro("O valor da operação deve ser maior que zero.")
-        if porcentagem < Decimal("-40") or porcentagem > Decimal("-20"):
-            return resposta_erro("A porcentagem deve estar entre -40% e -20%.")
+            return resposta_erro(
+                "O valor original da operação deve ser maior que zero."
+            )
 
-        ganho_calculado = (valor * abs(porcentagem) / Decimal("100")).quantize(Decimal("0.01"))
-        valor_porcentagem = valor_porcentagem.quantize(Decimal("0.01"))
-        if abs(ganho_calculado - valor_porcentagem) > Decimal("0.02"):
-            return resposta_erro("O ganho informado não corresponde ao valor e à porcentagem da operação.")
+        if valor_envio <= 0:
+            return resposta_erro(
+                "O valor enviado deve ser maior que zero."
+            )
+
+        if valor_envio >= valor:
+            return resposta_erro(
+                "Os valores não conferem: o valor enviado precisa ser menor que o valor original."
+            )
+
+        ganho_calculado = (
+            valor -
+            valor_envio
+        ).quantize(
+            Decimal("0.01")
+        )
+
+        percentual_positivo = (
+            ganho_calculado /
+            valor *
+            Decimal("100")
+        )
+
+        if (
+            percentual_positivo <
+            Decimal("20")
+            or
+            percentual_positivo >
+            Decimal("40")
+        ):
+            return resposta_erro(
+                "A porcentagem automática ficou fora de 20% a 40%. O OCR pode ter perdido algum zero."
+            )
+
+        # Compatibilidade com o banco atual, que armazena taxa negativa.
+        porcentagem = (
+            -percentual_positivo
+        ).quantize(
+            Decimal("0.01")
+        )
+
+        data_exibicao = limpar_texto(
+            dados.get("data_exibicao"),
+            40,
+        )
+
+        if not data_exibicao:
+            return resposta_erro(
+                "A data e hora do print final não foram identificadas."
+            )
+
+        try:
+            data_local = datetime.strptime(
+                data_exibicao,
+                "%d/%m/%Y %H:%M",
+            ).replace(
+                tzinfo=ZoneInfo(
+                    "America/Sao_Paulo"
+                )
+            )
+
+            criado_em_operacao = (
+                data_local
+                .astimezone(
+                    timezone.utc
+                )
+            )
+        except ValueError:
+            return resposta_erro(
+                "A data e hora extraídas do print estão em formato inválido."
+            )
 
         nova_operacao = Operacao(
             usuario_id=current_user.id,
             nome_jogador=nome_jogador,
             id_jogador=id_jogador,
             valor=valor,
+            valor_envio=valor_envio,
             porcentagem=porcentagem,
             valor_porcentagem=ganho_calculado,
             observacoes=observacoes,
@@ -365,7 +438,7 @@ def configurar_rotas(app):
             print_envio_mime=print_envio_mime,
             print_recebimento_dados=print_recebimento_dados,
             print_recebimento_mime=print_recebimento_mime,
-            criado_em=datetime.now(timezone.utc),
+            criado_em=criado_em_operacao,
         )
         try:
             db.session.add(nova_operacao)

@@ -1,4 +1,4 @@
-console.log("PARSER.JS v43 CARREGADO");
+console.log("PARSER.JS v51 CARREGADO");
 
 
 // =========================================================
@@ -218,7 +218,23 @@ function pegarValorEnvio(texto){
             "frase de envio",
 
             regex:
-            /envi\w*\s+(?:o\s+valor\s+de\s+)?R?\s*\$?\s*([\d\s.,]{4,30}?)\s+(?:para|pra)\b/i
+            /envi\w*\s+(?:o\s+valor\s+de\s+)?R?\s*\$?\s*([\d\s.,oOiIlL|sSbB]{4,30}?)\s+(?:para|pra)\b/i
+        },
+
+        {
+            nome:
+            "sucesso + valor enviado",
+
+            regex:
+            /(?:sucesso|sucess[o0]|suc[e3]sso).*?(?:envi\w*|envlou|env1ou).*?R?\s*\$?\s*([\d\s.,oOiIlL|sSbB]{4,30})/i
+        },
+
+        {
+            nome:
+            "enviou valor sem para",
+
+            regex:
+            /(?:enviou|envlou|env1ou|envi0u)\D{0,12}R?\s*\$?\s*([\d\s.,oOiIlL|sSbB]{4,30})/i
         },
 
         {
@@ -259,7 +275,9 @@ function pegarValorEnvio(texto){
 
         const valor =
         converterValor(
-            busca[1]
+            corrigirTrechoNumerico(
+                busca[1]
+            )
         );
 
 
@@ -1040,8 +1058,17 @@ function pegarValorBalao(
 
 
     /*
-        Quando o saldo do envio existe, elimina valores
-        maiores que ele. Isso remove muitos anúncios e saldos.
+        REGRA DA LAVAGEM
+
+        O valor do balão azul é o valor ORIGINAL recebido.
+        O valor do print verde é o valor ENVIADO depois da taxa.
+
+        Portanto:
+            recebido > enviado
+
+        Também priorizamos pares cuja taxa calculada fique
+        entre 20% e 40%. Isso ajuda a impedir que saldo,
+        ID ou um número com zero perdido pelo OCR seja escolhido.
     */
 
     if(
@@ -1050,26 +1077,81 @@ function pegarValorBalao(
         )
     ){
 
-        const abaixoDoEnvio =
-        candidatos.filter(
+        const compativeis =
+        candidatos
+        .filter(
+            candidato =>
+                candidato.valor >
+                valorEnvio
+        )
+        .map(
             candidato => {
 
-                return (
-                    candidato.valor <=
-                    valorEnvio
-                );
+                const percentual =
+                (
+                    (
+                        candidato.valor -
+                        valorEnvio
+                    )
+                    /
+                    candidato.valor
+                )
+                * 100;
+
+
+                let bonus = 0;
+
+                if(
+                    percentual >= 20 &&
+                    percentual <= 40
+                ){
+                    bonus += 120;
+                }
+                else{
+                    bonus -= 90;
+                }
+
+
+                /*
+                    Taxas inteiras comuns ganham um pequeno bônus.
+                    Ex.: 20%, 25%, 30%.
+                */
+                const distanciaInteiro =
+                    Math.abs(
+                        percentual -
+                        Math.round(percentual)
+                    );
+
+                if(
+                    distanciaInteiro < 0.02
+                ){
+                    bonus += 12;
+                }
+
+
+                return {
+                    ...candidato,
+                    percentualCalculado:
+                        percentual,
+                    pontuacao:
+                        candidato.pontuacao +
+                        bonus
+                };
 
             }
+        )
+        .sort(
+            (a,b) =>
+                b.pontuacao -
+                a.pontuacao
         );
 
 
         if(
-            abaixoDoEnvio.length > 0
+            compativeis.length > 0
         ){
-
             candidatosValidos =
-            abaixoDoEnvio;
-
+                compativeis;
         }
 
     }
@@ -1317,389 +1399,29 @@ function pegarJogador(
 
 function pegarData(texto){
 
-    const original =
-        limparTexto(
-            texto
-        );
-
-    /*
-        O OCR pode confundir:
-        O/o -> 0
-        I/l/| -> 1
-
-        Mas só corrigimos em trechos que parecem data/hora,
-        para não destruir o restante do texto.
-    */
-
-    const corrigirDataHora =
-        valor =>
-        String(
-            valor || ""
-        )
-        .replace(/[oO]/g, "0")
-        .replace(/[iIlL|]/g, "1")
-        .replace(/[;,]/g, ":")
-        .replace(/\s+/g, " ")
-        .trim();
-
-
-    /*
-        1) DATA + HORA no mesmo trecho.
-
-        Aceita, por exemplo:
-
-        16/08/2026 15:32
-        16-08-2026 - 15:32
-        16.08.2026 às 15:32
-        16/08/2026 | 15.32
-        16/08/2026 15 32
-        16/08/2026 15;32
-    */
-
-    const padraoCompleto =
-        /(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})[\s\S]{0,18}?(\d{1,2})\s*[:.;\s]\s*(\d{2})/g;
-
-
-    let correspondencia;
-
-
-    while(
-        (
-            correspondencia =
-                padraoCompleto.exec(
-                    corrigirDataHora(
-                        original
-                    )
-                )
-        ) !== null
-    ){
-
-        const dia =
-            Number(
-                correspondencia[1]
-            );
-
-        const mes =
-            Number(
-                correspondencia[2]
-            );
-
-        const ano =
-            Number(
-                correspondencia[3]
-            );
-
-        const hora =
-            Number(
-                correspondencia[4]
-            );
-
-        const minuto =
-            Number(
-                correspondencia[5]
-            );
-
-
-        if(
-            dia >= 1 &&
-            dia <= 31 &&
-            mes >= 1 &&
-            mes <= 12 &&
-            ano >= 2000 &&
-            ano <= 2100 &&
-            hora >= 0 &&
-            hora <= 23 &&
-            minuto >= 0 &&
-            minuto <= 59
-        ){
-
-            return (
-                String(dia)
-                    .padStart(2, "0")
-                +
-                "/"
-                +
-                String(mes)
-                    .padStart(2, "0")
-                +
-                "/"
-                +
-                String(ano)
-                +
-                " "
-                +
-                String(hora)
-                    .padStart(2, "0")
-                +
-                ":"
-                +
-                String(minuto)
-                    .padStart(2, "0")
-            );
-
-        }
-
-    }
-
-
-    /*
-        2) Se a data e a hora vierem quebradas em linhas diferentes,
-        procuramos primeiro a data e depois uma hora próxima.
-
-        Exemplo do OCR:
-
-        16/08/2026
-        ...
-        15:32
-    */
-
-    const textoCorrigido =
-        corrigirDataHora(
-            original
-        );
-
-
-    const buscaData =
-        textoCorrigido.match(
-            /(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{4})/
-        );
-
-
-    if(
-        !buscaData
-    ){
-
-        console.warn(
-            "DATA DO PRINT NÃO IDENTIFICADA"
-        );
-
-        return "---";
-
-    }
-
-
-    const dia =
-        Number(
-            buscaData[1]
-        );
-
-    const mes =
-        Number(
-            buscaData[2]
-        );
-
-    const ano =
-        Number(
-            buscaData[3]
-        );
-
-
-    if(
-        dia < 1 ||
-        dia > 31 ||
-        mes < 1 ||
-        mes > 12 ||
-        ano < 2000 ||
-        ano > 2100
-    ){
-
-        console.warn(
-            "DATA DO PRINT INVÁLIDA:",
-            buscaData[0]
-        );
-
-        return "---";
-
-    }
-
-
-    const indiceData =
-        textoCorrigido.indexOf(
-            buscaData[0]
-        );
-
-
-    /*
-        A hora precisa estar próxima da data.
-        Assim evitamos usar ping, FPS, dinheiro ou outro número.
-    */
-
-    const inicioJanela =
-        Math.max(
-            0,
-            indiceData - 35
-        );
-
-    const fimJanela =
-        Math.min(
-            textoCorrigido.length,
-            indiceData +
-            buscaData[0].length +
-            80
-        );
-
-
-    const contexto =
-        textoCorrigido.slice(
-            inicioJanela,
-            fimJanela
-        );
-
-
-    const horas =
-        [
-            ...contexto.matchAll(
-                /\b([01]?\d|2[0-3])\s*[:.;]\s*([0-5]\d)\b/g
-            )
-        ];
-
-
-    let horaEscolhida =
-        null;
-
-
-    for(
-        const hora of horas
-    ){
-
-        const horaNumero =
-            Number(
-                hora[1]
-            );
-
-        const minutoNumero =
-            Number(
-                hora[2]
-            );
-
-
-        if(
-            horaNumero >= 0 &&
-            horaNumero <= 23 &&
-            minutoNumero >= 0 &&
-            minutoNumero <= 59
-        ){
-
-            horaEscolhida = {
-                hora:
-                    horaNumero,
-
-                minuto:
-                    minutoNumero
-            };
-
-            break;
-
-        }
-
-    }
-
-
-    if(
-        !horaEscolhida
-    ){
-
-        /*
-            Última tentativa:
-            alguns OCRs retornam "15 32" em vez de "15:32".
-            Só aceitamos se estiver bem perto da data.
-        */
-
-        const buscaHoraEspacada =
-            contexto.match(
-                /\b([01]?\d|2[0-3])\s+([0-5]\d)\b/
-            );
-
-
-        if(
-            buscaHoraEspacada
-        ){
-
-            horaEscolhida = {
-                hora:
-                    Number(
-                        buscaHoraEspacada[1]
-                    ),
-
-                minuto:
-                    Number(
-                        buscaHoraEspacada[2]
-                    )
-            };
-
-        }
-
-    }
-
-
-    if(
-        !horaEscolhida
-    ){
-
-        console.warn(
-            "DATA ENCONTRADA, MAS HORA DO PRINT NÃO IDENTIFICADA:",
-            buscaData[0]
-        );
-
-        /*
-            Não usamos hora do computador.
-            A informação deve continuar fiel ao print.
-        */
-
-        return (
-            String(dia)
-                .padStart(2, "0")
-            +
-            "/"
-            +
-            String(mes)
-                .padStart(2, "0")
-            +
-            "/"
-            +
-            String(ano)
-        );
-
-    }
-
-
-    const resultado =
-        (
-            String(dia)
-                .padStart(2, "0")
-            +
-            "/"
-            +
-            String(mes)
-                .padStart(2, "0")
-            +
-            "/"
-            +
-            String(ano)
-            +
-            " "
-            +
-            String(
-                horaEscolhida.hora
-            )
-            .padStart(2, "0")
-            +
-            ":"
-            +
-            String(
-                horaEscolhida.minuto
-            )
-            .padStart(2, "0")
-        );
-
-
-    console.log(
-        "DATA E HORA IDENTIFICADAS NO PRINT:",
-        resultado
+    const textoLimpo =
+    textoEmUmaLinha(
+        texto
     );
 
 
-    return resultado;
+    const busca =
+    textoLimpo.match(
+        /\b(\d{2})[\/.-](\d{2})[\/.-](\d{4})\s*[-–—]?\s*(\d{2}):(\d{2})\b/
+    );
+
+
+    if(!busca){
+
+        return "---";
+
+    }
+
+
+    return (
+        `${busca[1]}/${busca[2]}/${busca[3]} ` +
+        `${busca[4]}:${busca[5]}`
+    );
 
 }
 
@@ -1719,7 +1441,7 @@ function parseOCR(
 
 
     console.log(
-        "PARSER v43 RECEBEU OCR"
+        "PARSER v51 RECEBEU OCR"
     );
 
 
@@ -1826,62 +1548,7 @@ function parseOCR(
 // TESTES DO PARSER
 // =========================================================
 
-function testarParserV43(){
-
-
-    /*
-        Testes específicos de data e hora do print.
-    */
-
-    const testesDataHora = [
-
-        [
-            "16/08/2026 15:32",
-            "16/08/2026 15:32"
-        ],
-
-        [
-            "16-08-2026 - 15:32",
-            "16/08/2026 15:32"
-        ],
-
-        [
-            "16.08.2026 às 15.32",
-            "16/08/2026 15:32"
-        ],
-
-        [
-            "16/08/2026 | 15;32",
-            "16/08/2026 15:32"
-        ]
-
-    ];
-
-
-    testesDataHora.forEach(
-        ([entrada, esperado]) => {
-
-            const encontrado =
-                pegarData(
-                    entrada
-                );
-
-            console.log(
-                "TESTE DATA/HORA:",
-                entrada,
-                "| ENCONTRADO:",
-                encontrado,
-                "| ESPERADO:",
-                esperado,
-                "| STATUS:",
-                encontrado === esperado
-                    ? "OK"
-                    : "FALHOU"
-            );
-
-        }
-    );
-
+function testarParserV42(){
 
     const testes = [
 
@@ -1987,10 +1654,10 @@ window.converterValor =
 converterValor;
 
 
-window.testarParserV43 =
-testarParserV43;
+window.testarParserV42 =
+testarParserV42;
 
 
 console.log(
-    "PARSER.JS v43 PRONTO"
+    "PARSER.JS v51 PRONTO"
 );

@@ -789,10 +789,10 @@
                     <div class="campo-conteudo">
 
                         <label>
-                            Data da operação
+                            Data e hora do print final
                         </label>
 
-                        <p id="dataOperacao" data-data-fixa="1">
+                        <p id="dataOperacao" >
                             {{ data_hoje }}
                         </p>
 
@@ -843,43 +843,28 @@
 
                         <div class="controle-porcentagem">
 
-
-                            <button
-                                type="button"
-                                class="btn-porcentagem"
-                                id="diminuirPorcentagem"
-                            >
-                                −
-                            </button>
-
-
                             <div class="porcentagem-valor">
 
-                                <input
-                                    type="number"
-                                    id="porcentagemAplicada"
-                                    value="-20"
-                                    min="-40"
-                                    max="-20"
-                                    step="1"
-                                    inputmode="numeric"
+                                <strong
+                                    id="porcentagemExibida"
+                                    style="font-size: 1.15rem;"
                                 >
+                                    --%
+                                </strong>
 
-                                <span>
-                                    %
-                                </span>
+                                <input
+                                    type="hidden"
+                                    id="porcentagemAplicada"
+                                    value=""
+                                >
 
                             </div>
 
-
-                            <button
-                                type="button"
-                                class="btn-porcentagem"
-                                id="aumentarPorcentagem"
+                            <small
+                                style="opacity:.72;"
                             >
-                                +
-                            </button>
-
+                                Calculada automaticamente pelos dois prints
+                            </small>
 
                         </div>
 
@@ -979,7 +964,7 @@
                         </strong>
 
                         <small>
-                            Relatório + prints
+                            Somente texto
                         </small>
 
                     </div>
@@ -1219,9 +1204,9 @@ document.addEventListener(
      SCRIPTS DO SISTEMA
 ====================================== -->
 <script src="{{ url_for('static', filename='js/imageprocessor.js') }}?v=45"></script>
-<script src="{{ url_for('static', filename='js/parser.js') }}?v=43"></script>
-<script src="{{ url_for('static', filename='js/ocr.js') }}?v=50"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=50"></script>
+<script src="{{ url_for('static', filename='js/parser.js') }}?v=51"></script>
+<script src="{{ url_for('static', filename='js/ocr.js') }}?v=51"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=51"></script>
 </body>
 
 </html>

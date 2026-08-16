@@ -1,0 +1,20 @@
+NC PRO EXTRACTOR — VERCEL + NEON
+
+1. Envie OS ARQUIVOS DESTA PASTA para a raiz do seu repositório GitHub.
+   O ideal é que app.py e requirements.txt apareçam logo na primeira tela do repositório.
+
+2. Na Vercel:
+   - Import Git Repository
+   - Framework: Flask (detectado automaticamente)
+   - Root Directory: deixe vazio SE app.py estiver na raiz do GitHub.
+
+3. Environment Variables:
+   DATABASE_URL = Connection string do Neon
+   SECRET_KEY = chave secreta longa
+   HTTPS = 1
+
+4. Deploy.
+
+RELATÓRIO:
+Os botões do Dashboard e do Histórico copiam SOMENTE TEXTO.
+Os prints não são colocados no clipboard do relatório.

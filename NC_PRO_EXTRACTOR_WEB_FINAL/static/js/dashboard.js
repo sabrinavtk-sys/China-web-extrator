@@ -1,4 +1,4 @@
-console.log("DASHBOARD.JS v43 CARREGADO");
+console.log("DASHBOARD.JS v50 CARREGADO");
 
 
 // =========================================================
@@ -457,95 +457,216 @@ function normalizarPorcentagem(){
 }
 
 
+
+// =========================================================
+// PORCENTAGEM AUTOMÁTICA
+// recebido = valor original (balão azul)
+// enviado  = valor depois da taxa (balão verde)
+// =========================================================
+
+function aplicarCalculoAutomatico(
+    recebido,
+    enviado
+){
+    const valorOriginal =
+        Number(recebido) || 0;
+
+    const valorEnviado =
+        Number(enviado) || 0;
+
+    const campo =
+        obterElemento(
+            "porcentagemAplicada"
+        );
+
+    const exibicao =
+        obterElemento(
+            "porcentagemExibida"
+        );
+
+    const campoGanho =
+        obterElemento(
+            "valorPorcentagem"
+        );
+
+    if(
+        valorOriginal <= 0 ||
+        valorEnviado <= 0 ||
+        valorOriginal <= valorEnviado
+    ){
+        if(campo){
+            campo.value = "";
+        }
+
+        if(exibicao){
+            exibicao.textContent =
+                "--%";
+        }
+
+        if(campoGanho){
+            campoGanho.innerText =
+                "R$ 0,00";
+        }
+
+        return null;
+    }
+
+
+    const ganho =
+        valorOriginal -
+        valorEnviado;
+
+
+    const percentual =
+        (
+            ganho /
+            valorOriginal
+        )
+        * 100;
+
+
+    if(
+        percentual < 20 ||
+        percentual > 40
+    ){
+        if(campo){
+            campo.value = "";
+        }
+
+        if(exibicao){
+            exibicao.textContent =
+                "ERRO";
+        }
+
+        if(campoGanho){
+            campoGanho.innerText =
+                formatarDinheiro(
+                    ganho
+                );
+        }
+
+        return null;
+    }
+
+
+    /*
+        O banco antigo guarda a porcentagem negativa
+        por compatibilidade. A tela e o relatório mostram positiva.
+    */
+    if(campo){
+        campo.value =
+            -percentual;
+    }
+
+
+    const percentualTexto =
+        Math.abs(percentual)
+        .toLocaleString(
+            "pt-BR",
+            {
+                minimumFractionDigits:
+                    Number.isInteger(percentual)
+                        ? 0
+                        : 2,
+                maximumFractionDigits: 2
+            }
+        );
+
+
+    if(exibicao){
+        exibicao.textContent =
+            `${percentualTexto}%`;
+    }
+
+
+    if(campoGanho){
+        campoGanho.innerText =
+            formatarDinheiro(
+                ganho
+            );
+    }
+
+
+    if(window.resultadoOCR){
+        window.resultadoOCR
+            .percentualAutomatico =
+            percentual;
+
+        window.resultadoOCR
+            .ganhoAutomatico =
+            ganho;
+    }
+
+
+    console.log(
+        "CÁLCULO AUTOMÁTICO:",
+        {
+            recebido:
+                valorOriginal,
+            enviado:
+                valorEnviado,
+            percentual,
+            ganho
+        }
+    );
+
+
+    return {
+        percentual,
+        ganho
+    };
+}
+
+
+window.aplicarCalculoAutomatico =
+aplicarCalculoAutomatico;
+
+
 // =========================================================
 // CALCULAR GANHO
 // =========================================================
 
 function calcularGanho(){
 
-    const campoValor =
-    obterElemento(
-        "valorRecebido"
-    );
-
-
-    const campoPorcentagem =
-    obterElemento(
-        "porcentagemAplicada"
-    );
-
-
-    const campoResultado =
-    obterElemento(
-        "valorPorcentagem"
-    );
+    const resultado =
+        window.resultadoOCR ||
+        null;
 
 
     if(
-        !campoValor ||
-        !campoPorcentagem ||
-        !campoResultado
+        resultado &&
+        Number(resultado.recebido) > 0 &&
+        Number(resultado.envio) > 0
     ){
+        const automatico =
+            aplicarCalculoAutomatico(
+                Number(
+                    resultado.recebido
+                ),
+                Number(
+                    resultado.envio
+                )
+            );
 
-        return 0;
-
+        return automatico
+            ? automatico.ganho
+            : 0;
     }
 
 
-    const valor =
-    converterValorMonetario(
-        campoValor.innerText
-    );
+    const campoResultado =
+        obterElemento(
+            "valorPorcentagem"
+        );
 
 
-    const porcentagem =
-    normalizarPorcentagem();
+    if(campoResultado){
+        campoResultado.innerText =
+            "R$ 0,00";
+    }
 
 
-    /*
-        A porcentagem é negativa:
-
-        -20
-        -25
-        -40
-
-        O ganho precisa ser salvo como valor positivo.
-    */
-
-    const ganho =
-    valor *
-    (
-        Math.abs(
-            porcentagem
-        ) / 100
-    );
-
-
-    campoResultado.innerText =
-    formatarDinheiro(
-        ganho
-    );
-
-
-    console.log(
-        "VALOR PROCESSADO:",
-        valor
-    );
-
-
-    console.log(
-        "PORCENTAGEM APLICADA:",
-        porcentagem
-    );
-
-
-    console.log(
-        "GANHO CALCULADO:",
-        ganho
-    );
-
-
-    return ganho;
+    return 0;
 
 }
 
@@ -598,13 +719,24 @@ function obterDadosOperacao(){
     normalizarPorcentagem();
 
 
+    const valorEnvio =
+        Number(
+            window.resultadoOCR
+                ?.envio
+        ) || 0;
+
+
     const ganho =
-    valor *
-    (
-        Math.abs(
-            porcentagem
-        ) / 100
-    );
+        Number(
+            window.resultadoOCR
+                ?.ganhoAutomatico
+        ) ||
+        (
+            valor > 0 &&
+            valorEnvio > 0
+                ? valor - valorEnvio
+                : 0
+        );
 
 
     const observacoes =
@@ -627,6 +759,9 @@ function obterDadosOperacao(){
 
         valor:
             valor,
+
+        valor_envio:
+            valorEnvio,
 
         porcentagem:
             porcentagem,
@@ -691,6 +826,37 @@ function validarDadosOperacao(dados){
             "O valor processado é inválido. Execute o OCR novamente."
         );
 
+
+        return false;
+
+    }
+
+
+    if(
+        !dados.data_exibicao ||
+        dados.data_exibicao === "---"
+    ){
+
+        alert(
+            "A data e hora do print final não foram identificadas. Execute o OCR novamente."
+        );
+
+        return false;
+
+    }
+
+
+    if(
+        !Number.isFinite(
+            dados.valor_envio
+        ) ||
+        dados.valor_envio <= 0 ||
+        dados.valor_envio >= dados.valor
+    ){
+
+        alert(
+            "O valor enviado não foi identificado corretamente."
+        );
 
         return false;
 
@@ -1331,8 +1497,18 @@ function limparDadosOperacao(){
     if(porcentagem){
 
         porcentagem.value =
-        -20;
+        "";
 
+    }
+
+    const porcentagemExibida =
+        obterElemento(
+            "porcentagemExibida"
+        );
+
+    if(porcentagemExibida){
+        porcentagemExibida.textContent =
+            "--%";
     }
 
 

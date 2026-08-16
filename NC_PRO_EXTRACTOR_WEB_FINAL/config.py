@@ -32,5 +32,5 @@ class Config:
     SEND_FILE_MAX_AGE_DEFAULT = 0
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = os.getenv("HTTPS", "1" if os.getenv("RENDER") else "0") == "1"
+    SESSION_COOKIE_SECURE = os.getenv("HTTPS", "1" if (os.getenv("VERCEL") or os.getenv("RENDER")) else "0") == "1"
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024

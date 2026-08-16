@@ -296,7 +296,7 @@ def configurar_rotas(app):
         ganhos_total = db.session.query(func.coalesce(func.sum(Operacao.valor_porcentagem), 0)).filter(Operacao.usuario_id == current_user.id).scalar()
         ultimas_operacoes = consulta_usuario.order_by(Operacao.criado_em.desc(), Operacao.id.desc()).limit(10).all()
         progresso = resumo_meta_semanal(current_user)
-        data_hoje = agora_local().strftime("%d/%m/%Y")
+        data_hoje = agora_local().strftime("%d/%m/%Y %H:%M")
 
         return render_template(
             "dashboard.html",

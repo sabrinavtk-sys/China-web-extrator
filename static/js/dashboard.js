@@ -554,6 +554,98 @@ window.calcularGanho =
 calcularGanho;
 
 
+
+// =========================================================
+// DATA E HORA DO RELATÓRIO
+// Gera no momento da cópia, sem depender do HTML ou do servidor.
+// =========================================================
+
+function obterDataHoraRelatorio(){
+
+    try{
+
+        const partes =
+            new Intl.DateTimeFormat(
+                "pt-BR",
+                {
+                    timeZone: "America/Sao_Paulo",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                }
+            )
+            .formatToParts(
+                new Date()
+            );
+
+
+        const valores = {};
+
+        for(
+            const parte of partes
+        ){
+
+            if(
+                parte.type !==
+                "literal"
+            ){
+
+                valores[
+                    parte.type
+                ] =
+                parte.value;
+
+            }
+
+        }
+
+
+        return (
+            `${valores.day}/${valores.month}/${valores.year} ` +
+            `${valores.hour}:${valores.minute}`
+        );
+
+    }
+    catch(erro){
+
+        console.warn(
+            "Falha ao formatar horário de Brasília:",
+            erro
+        );
+
+
+        const agora =
+            new Date();
+
+
+        return (
+            agora
+                .toLocaleDateString(
+                    "pt-BR"
+                )
+            +
+            " "
+            +
+            agora
+                .toLocaleTimeString(
+                    "pt-BR",
+                    {
+                        hour:
+                            "2-digit",
+                        minute:
+                            "2-digit"
+                    }
+                )
+        );
+
+    }
+
+}
+
+
 // =========================================================
 // DADOS DA OPERAÇÃO
 // =========================================================
@@ -575,15 +667,13 @@ function obterDadosOperacao(){
 
 
     /*
-        A data é preenchida automaticamente pelo servidor.
-        Ela não depende do OCR do print.
+        A data e hora do relatório são geradas no instante
+        em que os dados são lidos/copied, no fuso de Brasília.
+        Isso evita depender do texto renderizado no HTML.
     */
 
     const data =
-    obterElemento(
-        "dataOperacao"
-    )?.innerText?.trim() ||
-    "---";
+        obterDataHoraRelatorio();
 
 
     const valor =
@@ -1097,7 +1187,7 @@ function gerarTextoComprovante(){
 
 👤 Jogador: ${dados.nome_jogador}
 🆔 ID: ${dados.id_jogador}
-📅 Data: ${dados.data_exibicao}
+📅 Data e hora: ${dados.data_exibicao}
 
 💵 Valor processado: ${valorFormatado}
 📊 Porcentagem aplicada: ${porcentagemFormatada}%
